@@ -52,8 +52,10 @@ class Handoff {
             botbuilder: (session, next) => {
                 // Pass incoming messages to routing method
                 if (session.message.type === 'message') {
-                    this.routeMessage(session, next);
+                    return this.routeMessage(session, next);
                 }
+
+                next();
             },
             send: (event, next) => __awaiter(this, void 0, void 0, function* () {
                 // Messages sent from the bot do not need to be routed

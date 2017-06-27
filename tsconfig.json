@@ -4,9 +4,14 @@
         "target": "es6",
         "noImplicitAny": false,
         "outDir": "./dist",
-        "sourceMap": true
+        "sourceMap": true,
+        "allowJs": true
     },
     "files": [
-        "./src/index.ts"
+        "./src/index.ts",
+        "./src/commands.ts",
+        "./src/handoff.ts",
+        "./src/provider.ts",
+        "./test/handoff.spec.ts"
     ]
 }

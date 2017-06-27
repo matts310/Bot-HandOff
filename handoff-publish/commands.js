@@ -14,8 +14,10 @@ function commandsMiddleware(handoff) {
     return {
         botbuilder: (session, next) => {
             if (session.message.type === 'message') {
-                command(session, next, handoff);
+                return command(session, next, handoff);
             }
+
+            next();
         }
     };
 }
