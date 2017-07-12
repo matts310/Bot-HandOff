@@ -2,11 +2,11 @@ import * as builder from 'botbuilder';
 import { Conversation, ConversationState, Handoff } from './handoff';
 const indexExports = require('./index');
 
-export function commandsMiddleware(handoff: Handoff) {
+export function commandsMiddleware(bot: builder.UniversalBot, handoff: Handoff) {
     return {
         botbuilder: (session: builder.Session, next: Function) => {
             if (session.message.type === 'message') {
-                command(session, next, handoff);
+                command(session, next, handoff, bot);
             } else {
                 // allow messages of non 'message' type through 
                 next();
@@ -15,9 +15,9 @@ export function commandsMiddleware(handoff: Handoff) {
     }
 }
 
-function command(session: builder.Session, next: Function, handoff: Handoff) {
+function command(session: builder.Session, next: Function, handoff: Handoff, bot: builder.UniversalBot) {
     if (handoff.isAgent(session)) {
-        agentCommand(session, next, handoff);
+        agentCommand(session, next, handoff, bot);
     } else {
         customerCommand(session, next, handoff);
     }
@@ -26,7 +26,8 @@ function command(session: builder.Session, next: Function, handoff: Handoff) {
 async function agentCommand(
     session: builder.Session,
     next: Function,
-    handoff: Handoff
+    handoff: Handoff,
+    bot: builder.UniversalBot
 ) {
 
     const message = session.message;
@@ -76,7 +77,14 @@ async function agentCommand(
 
     if (message.text === 'disconnect') {
         if (await handoff.connectCustomerToBot({ customerConversationId: conversation.customer.conversation.id })) {
+            //Send message to agent
             session.send("Customer " + conversation.customer.user.name + " is now connected to the bot.");
+
+            //Send message to customer
+            var reply = new builder.Message()
+                .address(conversation.customer)
+                .text('Agent has disconnected, you are now speaking to the bot.');
+            bot.send(reply);
         }
         return;
     }
