@@ -72,12 +72,4 @@ describe('Handoff message creators', () => {
         expect(msg.agentAddress).to.deep.equal(AGENT_ADDRESS);
         expect(msg.customerAddress).to.be.deep.equal(CUSTOMER_ADDRESS);
     });
-
-    it('createConnectMessage creates connect message    ', () => {
-        const msg = createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-
-        expect(msg.type).to.be.equal(MessageType.Connect);
-        expect(msg.agentAddress).to.deep.equal(AGENT_ADDRESS);
-        expect(msg.customerAddress).to.be.deep.equal(CUSTOMER_ADDRESS);
-    });
 });
