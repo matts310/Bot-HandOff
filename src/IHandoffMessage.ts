@@ -13,7 +13,7 @@ export interface IHandoffEventMessage extends IHandoffMessage {
 //tslint:disable
 export function isIHandoffEventMessage(arg: any): arg is IHandoffEventMessage {
 //tslint:enable
-    return arg.customerAddress && arg.agentAddress && arg.type in MessageType;
+    return arg.customerAddress && arg.agentAddress;
 }
 
 export function addCustomerAddressToMessage(msg: IMessage, customerAddress: IAddress): void {
