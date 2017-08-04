@@ -57,12 +57,12 @@ describe('agent handoff', () => {
 
         return new BotTester(bot, CUSTOMER_ADDRESS)
             .sendMessageToBot(customerIntroMessage, 'intro!')
-
-            // hacking this for testing purposes. This should be done behind the scenes in the bot
             .sendMessageToBot(createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS), 'you\'re now connected to an agent')
-            //tslint:disable
             .sendMessageToBot(agentMessage, userReceptionOfAgentMessage)
             .runTest();
     });
-});
 
+    describe('event message', () => {
+        it('connect causes a customer to connect to an agent')
+    });
+});
