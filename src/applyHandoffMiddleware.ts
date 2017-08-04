@@ -3,6 +3,7 @@ import { IAddress, IMessage, Message, Session, UniversalBot } from 'botbuilder';
 import { ConversationState, MessageType } from './constants';
 import { IConversation } from './IConversation';
 import { IHandoffEventMessage, isIHandoffEventMessage } from './IHandoffMessage';
+import { InMemoryProvider } from './provider/InMemoryProvider';
 // import { IHandoffEventMessage, isIHandoffEventMessage } from './IHandoffEventMessage';
 
 import { getAddAddressesForHandoffMessageMiddleware } from './middleware/getAddAddressesForHandoffMessageMiddleware';
@@ -16,7 +17,7 @@ import { routeCustomerMessage } from './routers/routeCustomerMessage';
 
 export type IsAgentFunction = (session: Session) => Promise<boolean>;
 
-export function applyHandoffMiddleware(bot: UniversalBot, provider: IProvider, isAgent: IsAgentFunction): void {
+export function applyHandoffMiddleware(bot: UniversalBot, isAgent: IsAgentFunction, provider: IProvider = new InMemoryProvider()): void {
     const receive = [
         getHandoffMessageEventInterceptor(bot, provider)
     ];

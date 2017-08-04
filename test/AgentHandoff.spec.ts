@@ -35,7 +35,7 @@ describe('agent handoff', () => {
             session.send('intro!');
         });
 
-        applyHandoffMiddleware(bot, new InMemoryProvider(), isAgent);
+        applyHandoffMiddleware(bot, isAgent, new InMemoryProvider());
     });
 
     it('can handover to agents', () => {
