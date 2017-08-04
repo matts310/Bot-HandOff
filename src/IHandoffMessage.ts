@@ -25,10 +25,34 @@ export function addAgentAddressToMessage(msg: IMessage, agentAddress: IAddress):
 }
 
 export function createConnectMessage(customerAddress: IAddress, agentAddress: IAddress): IHandoffEventMessage {
+    return createHandoffEventMessage(MessageType.Connect, customerAddress, agentAddress);
+}
+
+export function createDisconnectMessage(customerAddress: IAddress, agentAddress: IAddress): IHandoffEventMessage {
+    return createHandoffEventMessage(MessageType.Disconnect, customerAddress, agentAddress);
+}
+
+export function createWatchEventMessage(customerAddress: IAddress, agentAddress: IAddress): IHandoffEventMessage {
+    return createHandoffEventMessage(MessageType.Watch, customerAddress, agentAddress);
+}
+
+export function createUnwatchEventMessage(customerAddress: IAddress, agentAddress: IAddress): IHandoffEventMessage {
+    return createHandoffEventMessage(MessageType.Unwatch, customerAddress, agentAddress);
+}
+
+export function createQueueMessage(customerAddress: IAddress): IHandoffEventMessage {
+    return createHandoffEventMessage(MessageType.Queue, customerAddress);
+}
+
+export function createDequeueMessage(customerAddress: IAddress): IHandoffEventMessage {
+    return createHandoffEventMessage(MessageType.Dequeue, customerAddress);
+}
+
+function createHandoffEventMessage(type: MessageType, customerAddress: IAddress, agentAddress?: IAddress): IHandoffEventMessage {
     const message = new Message()
         .toMessage() as IHandoffEventMessage;
 
-    message.type = MessageType.Connect;
+    message.type = type;
     message.customerAddress = customerAddress;
     message.agentAddress = agentAddress;
 
