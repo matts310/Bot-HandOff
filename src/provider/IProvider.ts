@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import { IAddress, IMessage } from 'botbuilder';
 import { ConversationState, MessageSource } from '../constants';
 import { IConversation } from '../IConversation';
-import { IHandoffEventMessage } from './../IHandoffEventMessage';
+import { IHandoffEventMessage } from './../IHandoffMessage';
 import { IHandoffMessage } from './../IHandoffMessage';
 
 // export interface IHandoffMessage {

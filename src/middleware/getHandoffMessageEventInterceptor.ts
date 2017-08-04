@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import { IAddress, IMessage, Message, UniversalBot } from 'botbuilder';
 import { MessageType } from '../constants';
 import { IConversation } from '../IConversation';
-import { IHandoffEventMessage, isIHandoffEventMessage } from '../IHandoffEventMessage';
+import { IHandoffEventMessage, isIHandoffEventMessage } from '../IHandoffMessage';
 import { IProvider } from '../provider/IProvider';
 
 export function getHandoffMessageEventInterceptor(bot: UniversalBot, provider: IProvider): (msg: IMessage, next: Function) => void {

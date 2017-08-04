@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import { BotTester } from 'bot-tester';
 import { ConsoleConnector, IAddress, IMessage, Message, Session, UniversalBot } from 'botbuilder';
 import { expect } from 'chai';
-import { createConnectMessage } from '../src/IHandoffEventMessage';
+import { createConnectMessage } from '../src/IHandoffMessage';
 import { InMemoryProvider } from '../src/provider/InMemoryProvider';
 import { applyHandoffMiddleware } from './../src/applyHandoffMiddleware';
 import { IHandoffMessage } from './../src/IHandoffMessage';
