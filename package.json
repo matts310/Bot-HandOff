@@ -14,7 +14,7 @@
     "start": "node dist/index.js",
     "test": "node_modules/mocha/bin/_mocha --colors --require node_modules/ts-node/register test/*.spec.ts",
     "testPublish": " npm run cleanBuild && node_modules/mocha/bin/_mocha dist/test/*.spec.js",
-    "testWatch": "watch-run -i -p 'src/**/*.ts,test/**/*.ts' yarn test"
+    "testWatch": "watch-run -i -p 'src/**/*.ts,test/**/*.ts' npm test"
   },
   "repository": {
     "type": "git",
