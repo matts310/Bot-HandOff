@@ -5,12 +5,6 @@ import { IConversation } from '../IConversation';
 import { IHandoffEventMessage } from './../IHandoffMessage';
 import { IHandoffMessage } from './../IHandoffMessage';
 
-// export interface IHandoffMessage {
-//     message: IMessage;
-//     routingAddress: HandoffRoutingAddress;
-//     from: MessageSource;
-// }
-
 export class AgentNotInConversationError extends Error {
     constructor(agentConversationId: string) {
         super(`no customer conversation found for agent with conversation id ${agentConversationId}`);
