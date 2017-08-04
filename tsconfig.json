@@ -9,6 +9,6 @@
     "files": [
         "./src/applyHandoffMiddleware.ts",
         "./test/AgentHandoff.spec.ts",
-        "./test/InMemoryProvider.spec.ts"
+        "./test/provider.spec.ts"
     ]
 }
