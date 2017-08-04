@@ -6,12 +6,15 @@
   "main": "dist/index.js",
   "homepage": "https://github.com/palindromed/Bot-HandOff/tree/npm-handoff",
   "scripts": {
-    "postinstall": "tsc",
-    "build": "tsc",
-    "watch": "tsc -w",
+    "prepublishOnly": "npm run cleanBuild && npm run testPublish",
+    "build": "node_modules/typescript/bin/tsc",
+    "clean": "rm -rf dist",
+    "cleanBuild": "npm run clean && npm run build",
     "nodewatch": "nodemon dist/index.js",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/mocha/bin/_mocha --colors --require node_modules/ts-node/register test/*.spec.ts",
+    "testPublish": "node_modules/mocha/bin/_mocha dist/test/*.spec.js",
+    "testWatch": "watch-run -i -p 'src/**/*.ts,test/**/*.ts' yarn test"
   },
   "repository": {
     "type": "git",
@@ -29,14 +32,25 @@
     "body-parser": "^1.17.2",
     "botbuilder": "^3.7.0",
     "cors": "2.8.3",
-    "express": "^4.14.0",
+    "express": "^4.15.3",
+    "lodash": "^4.17.4",
     "mongoose": "^4.9.7",
-    "typescript": "^2.1.4"
+    "typescript": "^2.4.2"
   },
   "devDependencies": {
+    "@types/bluebird": "^3.5.8",
+    "@types/chai": "^4.0.2",
+    "@types/chai-as-promised": "^0.0.31",
     "@types/express": "^4.0.34",
+    "@types/lodash": "^4.14.71",
+    "@types/mocha": "^2.2.41",
     "@types/mongoose": "^4.7.11",
     "@types/node": "^6.0.59",
-    "nodemon": "^1.11.0"
+    "bot-tester": "^1.0.4",
+    "chai": "^4.1.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^3.5.0",
+    "nodemon": "^1.11.0",
+    "ts-node": "^3.3.0"
   }
 }

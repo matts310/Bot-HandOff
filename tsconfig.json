@@ -7,6 +7,8 @@
         "sourceMap": true
     },
     "files": [
-        "./src/index.ts"
+        "./src/applyHandoffMiddleware.ts",
+        "./test/AgentHandoff.spec.ts",
+        "./test/InMemoryProvider.spec.ts"
     ]
 }

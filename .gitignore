@@ -3,3 +3,4 @@ dist
 .vscode/launch.json
 example/.vscode/launch.json
 *.map
+
