@@ -37,6 +37,7 @@ export class BotAttemptedToRecordMessageWhileAgentHasConnection extends Error {
 
 //tslint:disable
 export class AgentWithConvoIdNotEqualToWatchingAgentConvoId extends Error {
+//tslint:enable
     constructor(customerConvoId: string, agentConvoId: string) {
         super(`Agent attempted to connect convo ${agentConvoId} to customer convo ${customerConvoId}`);
 
@@ -45,7 +46,6 @@ export class AgentWithConvoIdNotEqualToWatchingAgentConvoId extends Error {
         Object.setPrototypeOf(this, AgentWithConvoIdNotEqualToWatchingAgentConvoId.prototype);
     }
 }
-//tslint:enable
 
 export interface IProvider {
 
