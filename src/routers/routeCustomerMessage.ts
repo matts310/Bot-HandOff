@@ -56,6 +56,6 @@ export function routeCustomerMessage(bot: UniversalBot, provider: IProvider): (s
                         .then(() => next());
                     //tslint:enable
                 }
-                    });
-            };
+            });
+    };
 }
