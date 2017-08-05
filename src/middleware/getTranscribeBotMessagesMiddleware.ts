@@ -11,7 +11,7 @@ export function getTranscribeBotMessagesMiddleware(provider: IProvider): (s: IMe
         //tslint:enable
 
         // if neither agentAddress nor customerAddress are defined, then the message originated from the bot
-        if (message.type === 'message' && !message.agentAddress && !message.customerAddress) {
+        if (message.type === 'message' && !message.customerAddress) {
             transcribePromise = provider.addBotMessageToTranscriptIgnoringConversationState(message);
         }
 

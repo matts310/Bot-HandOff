@@ -1,5 +1,6 @@
 import * as Promise from 'bluebird';
 import { Session, UniversalBot } from 'botbuilder';
+import { ConversationState } from '../constants';
 import { IConversation } from '../IConversation';
 import { IHandoffMessage } from './../IHandoffMessage';
 import { IProvider } from './../provider/IProvider';
@@ -11,7 +12,7 @@ export function routeAgentMessage(bot: UniversalBot, provider: IProvider): (s: S
 
         return provider.getConversationFromAgentAddress(agentAddress)
             .then((convo: IConversation) => {
-                if (convo) {
+                if (convo && convo.conversationState === ConversationState.Agent) {
                     const customerAddress = convo.customerAddress;
                     const customerMessageMirror: IHandoffMessage =
                         Object.assign({ customerAddress, agentAddress }, session.message, { address: customerAddress });

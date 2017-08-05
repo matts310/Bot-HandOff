@@ -23,7 +23,7 @@
             "taskName": "compile",
             "args": [
                 "run",
-                "rebuild"
+                "cleanBuild"
             ]
         }
     ]

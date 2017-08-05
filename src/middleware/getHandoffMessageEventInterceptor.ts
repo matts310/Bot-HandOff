@@ -2,7 +2,7 @@ import * as Promise from 'bluebird';
 import { IAddress, IMessage, Message, UniversalBot } from 'botbuilder';
 import { MessageType } from '../constants';
 import { IConversation } from '../IConversation';
-import { IHandoffEventMessage, isIHandoffEventMessage } from '../IHandoffMessage';
+import { createHandoffErrorMessage, IHandoffEventMessage, isIHandoffEventMessage } from '../IHandoffMessage';
 import { IProvider } from '../provider/IProvider';
 
 export function getHandoffMessageEventInterceptor(bot: UniversalBot, provider: IProvider): (msg: IMessage, next: Function) => void {
@@ -28,9 +28,9 @@ class HandoffMessageEventInterceptor {
         };
     }
 
-    private intercept(msg: IHandoffEventMessage, next: Function): void {
+    private intercept(msg: IHandoffEventMessage, next: Function): {} {
         //tslint:disable
-        let handleMessage: Promise<any> = Promise.resolve();
+        let handleMessage: Promise<any>;
         //tslint:enable
         switch (msg.type) {
             case MessageType.Connect:
@@ -56,7 +56,8 @@ class HandoffMessageEventInterceptor {
         }
 
         //tslint:disable
-        handleMessage.then(() => next());
+        return handleMessage.then(() => next())
+            .catch((e: {}) => this.bot.send(createHandoffErrorMessage(msg, e)));
         //tslint:enable
     }
 
@@ -93,11 +94,17 @@ class HandoffMessageEventInterceptor {
             .then(() => this.sendCustomerMessage('you\'re no longer connected to the agent', msg.customerAddress));
     }
 
+    private catchEventError(eventMessageErrorSource: IHandoffEventMessage, error: {}): void {
+        this.bot.send(createHandoffErrorMessage(eventMessageErrorSource, error));
+    }
+
     private sendCustomerMessage(text: string, customerAddress: IAddress): void {
         const message = new Message()
             .address(customerAddress)
             .text(text)
-            .toMessage();
+            .toMessage() as IHandoffEventMessage;
+
+        message.customerAddress = customerAddress;
 
         this.bot.send(message);
     }
@@ -106,7 +113,9 @@ class HandoffMessageEventInterceptor {
         const message = new Message()
             .address(agentAddress)
             .text(text)
-            .toMessage();
+            .toMessage() as IHandoffEventMessage;
+
+        message.agentAddress = agentAddress;
 
         this.bot.send(message);
     }

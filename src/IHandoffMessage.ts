@@ -10,6 +10,11 @@ export interface IHandoffEventMessage extends IHandoffMessage {
     type: MessageType;
 }
 
+export interface IHandoffErrorEventMessage extends IHandoffEventMessage {
+    sourceEventMessage: IHandoffEventMessage;
+    error: {};
+}
+
 //tslint:disable
 export function isIHandoffEventMessage(arg: any): arg is IHandoffEventMessage {
 //tslint:enable
@@ -46,6 +51,21 @@ export function createQueueMessage(customerAddress: IAddress): IHandoffEventMess
 
 export function createDequeueMessage(customerAddress: IAddress): IHandoffEventMessage {
     return createHandoffEventMessage(MessageType.Dequeue, customerAddress);
+}
+
+export function createHandoffErrorMessage(sourceMessage: IHandoffEventMessage, error: {}): IHandoffErrorEventMessage {
+    const message = new Message()
+        .toMessage() as IHandoffErrorEventMessage;
+
+    message.type = MessageType.Error;
+    message.sourceEventMessage = sourceMessage;
+    message.error = error;
+
+    // if the origin event message had an agent address, the agent side event caused the issue.
+    // Return error message should be sent that way
+    message.address = sourceMessage.agentAddress || sourceMessage.customerAddress;
+
+    return message;
 }
 
 function createHandoffEventMessage(type: MessageType, customerAddress: IAddress, agentAddress?: IAddress): IHandoffEventMessage {

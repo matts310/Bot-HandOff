@@ -12,13 +12,15 @@ import {
     createConnectMessage,
     createDequeueMessage,
     createDisconnectMessage,
+    createHandoffErrorMessage,
     createQueueMessage,
     createUnwatchEventMessage,
     createWatchEventMessage,
+    IHandoffErrorEventMessage,
     IHandoffEventMessage,
     IHandoffMessage
 } from './../src/IHandoffMessage';
-import { IProvider } from './../src/provider/IProvider';
+import { AgentAlreadyInConversationError, IProvider } from './../src/provider/IProvider';
 
 chai.use(sinonChai);
 
@@ -39,7 +41,7 @@ const AGENT_ADDRESS: IAddress = { channelId: 'console',
 };
 
 const isAgent = (session: Session): Promise<boolean> => {
-    return Promise.resolve(session.message.address.user.name === 'agent');
+    return Promise.resolve(!!(session.message as IHandoffMessage).agentAddress);
 };
 
 //tslint:disable
@@ -52,9 +54,10 @@ function createIProviderSpy(provider: IProvider): IProvider {
 }
 //tslint:enable
 
-describe('agent handoff', () => {
+describe('event message', () => {
     let bot: UniversalBot;
     let provider: IProvider;
+    let eventMessage: IHandoffEventMessage;
 
     // actually a spy, but this allows us to only focus on the relevant methods
     let providerSpy: IProvider;
@@ -68,63 +71,37 @@ describe('agent handoff', () => {
         provider = new InMemoryProvider();
         providerSpy = createIProviderSpy(provider);
         bot = new UniversalBot(connector);
+
         bot.dialog('/', (session: Session) => {
-            console.log('SENDING INTRO');
             session.send('intro!');
         });
 
         applyHandoffMiddleware(bot, isAgent, provider);
-    });
-
-    it('can handover to agents', () => {
-        const customerIntroMessage2 = new Message()
-            .text('hello')
-            .address(CUSTOMER_ADDRESS)
-            .toMessage();
-
-        const agentMessage = new Message()
-            .address(AGENT_ADDRESS)
-            .text('hello there')
-            .toMessage();
-
-        const userReceptionOfAgentMessage = Object.assign({}, agentMessage, { address: CUSTOMER_ADDRESS, text: 'hello there'});
 
         return new BotTester(bot, CUSTOMER_ADDRESS)
-            .sendMessageToBot(customerIntroMessage2, 'intro!')
-            .sendMessageToBot(createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS), 'you\'re now connected to an agent')
-            .sendMessageToBot(agentMessage, userReceptionOfAgentMessage)
+            .sendMessageToBot(customerIntroMessage)
             .runTest();
     });
 
-    xdescribe('event message', () => {
-        let eventMessage: IHandoffEventMessage;
+    afterEach(() => {
+        ensureProviderDidNotTranscribeMessage(eventMessage);
+    });
 
-        function sendMessageToBotAndGetConversationData(
-            msg: IHandoffEventMessage,
-            expectedResponse?: string | IMessage
-        ):  Promise<IConversation> {
-            return new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(msg, expectedResponse)
-                .runTest()
-                .then(() => provider.getConversationFromCustomerAddress(CUSTOMER_ADDRESS));
-        }
+    function ensureProviderDidNotTranscribeMessage(msg: IHandoffEventMessage): void {
+        expect(provider.addAgentMessageToTranscript).not.to.have.been.calledWith(msg);
+        expect(provider.addBotMessageToTranscript).not.to.have.been.calledWith(msg);
+        expect(provider.addCustomerMessageToTranscript).not.to.have.been.calledWith(msg);
+    }
 
-        function ensureProviderDidNotTranscribeMessage(msg: IHandoffEventMessage): void {
-            expect(provider.addAgentMessageToTranscript).not.to.have.been.calledWith(msg);
-            expect(provider.addBotMessageToTranscript).not.to.have.been.calledWith(msg);
-            expect(provider.addCustomerMessageToTranscript).not.to.have.been.calledWith(msg);
-        }
+    function sendMessageToBotAndGetConversationData(
+        msg: IHandoffEventMessage, expectedResponse?: string | IMessage):  Promise<IConversation> {
+        return new BotTester(bot, CUSTOMER_ADDRESS)
+            .sendMessageToBot(msg, expectedResponse)
+            .runTest()
+            .then(() => provider.getConversationFromCustomerAddress(CUSTOMER_ADDRESS));
+    }
 
-        beforeEach(() => {
-            return new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(customerIntroMessage)
-                .runTest();
-        });
-
-        afterEach(() => {
-            ensureProviderDidNotTranscribeMessage(eventMessage);
-        });
-
+    describe('connect/disconnect', () => {
         it('connect sets converation state to Agent and bot responds with connection message to user', () => {
             eventMessage = createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
@@ -146,24 +123,18 @@ describe('agent handoff', () => {
                 });
         });
 
-        it('watch sets conversation state to watch ', () => {
-            eventMessage = createWatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+        it('sending connect event to an already connected conversation responds with an error event to the requesting agent', () => {
+            eventMessage = createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+            const errorEventMessage: IHandoffErrorEventMessage =
+                createHandoffErrorMessage(eventMessage, new AgentAlreadyInConversationError(AGENT_ADDRESS.conversation.id));
 
-            return sendMessageToBotAndGetConversationData(eventMessage)
-                .then((convo: IConversation) => {
-                    expect(providerSpy.watchConversation).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(convo.conversationState).to.be.equal(ConversationState.Watch);
-                });
-        });
+            const errorMessage = createHandoffErrorMessage(eventMessage, 'some error goes here');
 
-        it('unwatch sets conversation', () => {
-            eventMessage = createWatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+            const botTester = new BotTester(bot, CUSTOMER_ADDRESS)
+                .sendMessageToBot(eventMessage, errorEventMessage);
 
-            return sendMessageToBotAndGetConversationData(eventMessage)
-                .then((convo: IConversation) => {
-                    expect(providerSpy.watchConversation).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(convo.conversationState).to.be.equal(ConversationState.Watch);
-                });
+            return sendMessageToBotAndGetConversationData(eventMessage, 'you\'re now connected to an agent')
+                .then(() => botTester.runTest());
         });
     });
 });

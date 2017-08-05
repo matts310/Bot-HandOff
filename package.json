@@ -46,11 +46,15 @@
     "@types/mocha": "^2.2.41",
     "@types/mongoose": "^4.7.11",
     "@types/node": "^6.0.59",
-    "bot-tester": "^1.0.4",
+    "@types/sinon": "^2.3.3",
+    "@types/sinon-chai": "^2.7.28",
+    "bot-tester": "^1.1.10",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^3.5.0",
     "nodemon": "^1.11.0",
+    "sinon": "^3.0.0",
+    "sinon-chai": "^2.12.0",
     "ts-node": "^3.3.0"
   }
 }

@@ -9,6 +9,7 @@ export function getRouteMessgeMiddleware(
         if (session.message.type === 'message') {
             const message = session.message as IHandoffMessage;
             if (message.agentAddress) {
+                console.log('taking agent path');
                 routeAgentMessage(session);
             } else {
                 routeCustomerMessage(session, next);

@@ -12,7 +12,8 @@ export enum MessageType {
     Watch = '__watch__',
     Unwatch = '__unwatch__',
     Queue = '__queue__',
-    Dequeue = '__dequeue__'
+    Dequeue = '__dequeue__',
+    Error = '__handoffError__'
 }
 
 export enum MessageSource {
