@@ -25,8 +25,8 @@ export class InMemoryConversationProvider {
         return this.conversations[customerConvoId];
     }
 
-    public addToTranscriptOrCreateNewConversation(customerAddress: IAddress, message: IMessage, from: string): IConversation {
-        const newLine = Object.assign({from}, clone(message));
+    public addToTranscriptOrCreateNewConversation(customerAddress: IAddress, message: IMessage, from?: IAddress): IConversation {
+        const newLine = Object.assign({from, to: message.address}, clone(message));
         let convo = this.getConversationFromCustomerAddress(customerAddress);
 
         if (!convo) {

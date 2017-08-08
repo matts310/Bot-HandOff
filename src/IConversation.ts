@@ -8,9 +8,11 @@ export enum ConversationState {
     WatchAndWait = 'watch & wait'
 }
 
-// What an entry in the customer transcript will have
 export interface ITranscriptLine extends IMessage {
-    from: string;
+    // to will always be populated with the address of the message sent
+    // from will be populated with the address of the recepient, or null if the originator was the bot
+    to: IAddress;
+    from?: IAddress;
     sentimentScore?: number;
 }
 

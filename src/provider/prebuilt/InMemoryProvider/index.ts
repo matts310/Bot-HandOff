@@ -1,7 +1,6 @@
 import * as Promise from 'bluebird';
 import * as builder from 'botbuilder';
 import * as _ from 'lodash';
-// import { ConversationState, MessageSource } from '../../../constants';
 import { ConversationState, createDefaultConversation, IConversation, ITranscriptLine } from '../../../IConversation';
 import { IHandoffMessage, MessageSource } from '../../../IHandoffMessage';
 import { AgentAlreadyInConversationError} from '../../errors/AgentAlreadyInConversationError';
@@ -72,7 +71,7 @@ export class InMemoryProvider implements IProvider {
         const customerAddress = message.customerAddress;
 
         return Promise.resolve(
-            this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, MessageSource.Bot));
+            this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message));
     }
 
     public addCustomerMessageToTranscript(message: IHandoffMessage): Promise<IConversation> {
@@ -81,7 +80,7 @@ export class InMemoryProvider implements IProvider {
         const customerAddress = message.customerAddress;
 
         return Promise.resolve(
-            this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, customerAddress.user.name));
+            this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, customerAddress));
     }
 
     public addAgentMessageToTranscript(message: IHandoffMessage): Promise<IConversation> {
@@ -97,7 +96,7 @@ export class InMemoryProvider implements IProvider {
             return Promise.reject(new AgentNotInConversationError(agentAddress.conversation.id));
         }
 
-        const convo = this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, agentAddress.user.name);
+        const convo = this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, agentAddress);
 
         if (convo.conversationState !== ConversationState.Agent) {
             try {

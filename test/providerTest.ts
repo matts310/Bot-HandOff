@@ -105,7 +105,7 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                 expect(convo.transcript.length).to.be.equal(3);
                 const transcript = convo.transcript;
 
-                transcript.forEach((t: ITranscriptLine) => expect(t.from).to.be.equal(address.user.name));
+                transcript.forEach((t: ITranscriptLine) => expect(t.from).to.be.equal(address));
                 expect(transcript[0].text).to.be.equal('first message');
                 expect(transcript[1].text).to.be.equal('second message');
                 expect(transcript[2].text).to.be.equal('third message');
@@ -160,7 +160,7 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                         expect(convo.conversationState).to.be.equal(ConversationState.Wait);
                         expect(convo.transcript.length).to.be.equal(2);
                         expect(convo.transcript[1].text).to.be.equal('bot message');
-                        expect(convo.transcript[1].from).to.be.equal(MessageSource.Bot);
+                        expect(convo.transcript[1].from).to.be.undefined;
                     });
             });
 
@@ -252,8 +252,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                 return provider.addAgentMessageToTranscript(agentMessage)
                     .then((convo: IConversation) => {
                         expect(convo.transcript.length).to.be.equal(2);
-                        expect(convo.transcript[0].from).to.be.equal(customer1Address.user.name);
-                        expect(convo.transcript[1].from).to.be.equal(agent1Address1.user.name);
+                        expect(convo.transcript[0].from).to.be.equal(customer1Address);
+                        expect(convo.transcript[1].from).to.be.equal(agent1Address1);
                         expect(convo.transcript[1].text).to.be.equal('agent message');
                     });
             });
@@ -323,8 +323,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                         const firstTranscript = convo.transcript[0];
                         const secondTranscript = convo.transcript[1];
 
-                        expect(firstTranscript.from).to.be.equal(customerAddress.user.name);
-                        expect(secondTranscript.from).to.be.equal(agentAddress.user.name);
+                        expect(firstTranscript.from).to.be.equal(customerAddress);
+                        expect(secondTranscript.from).to.be.equal(agentAddress);
 
                         expect(firstTranscript.text).to.be.equal(`customer ${idCounter}`);
                         expect(secondTranscript.text).to.be.equal(`agent ${idCounter}`);
@@ -405,8 +405,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                         const firstMessage = convo.transcript[0];
                         const secondMessage = convo.transcript[1];
 
-                        expect(firstMessage.from).to.be.equal(customer1Address.user.name);
-                        expect(secondMessage.from).to.be.equal(agent1Address1.user.name);
+                        expect(firstMessage.from).to.be.equal(customer1Address);
+                        expect(secondMessage.from).to.be.equal(agent1Address1);
                         expect(firstMessage.text).to.be.equal('customer message');
                         expect(secondMessage.text).to.be.equal('agent message');
 
@@ -454,8 +454,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                         const firstTranscript = conversation.transcript[0];
                         const secondTranscript = conversation.transcript[1];
 
-                        expect(firstTranscript.from).to.be.equal(customer1Address.user.name);
-                        expect(secondTranscript.from).to.be.equal(agent1Address1.user.name);
+                        expect(firstTranscript.from).to.be.equal(customer1Address);
+                        expect(secondTranscript.from).to.be.equal(agent1Address1);
                     })
                     .then(() => provider.disconnectCustomerFromAgent(customer1Address, agent1Address1));
             });
