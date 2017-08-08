@@ -7,17 +7,9 @@ import * as sinonChai from 'sinon-chai';
 import { ConversationState } from '../src/constants';
 import { InMemoryProvider } from '../src/provider/InMemoryProvider';
 import { applyHandoffMiddleware } from './../src/applyHandoffMiddleware';
+import { ConnectEventMessage } from './../src/eventMessages/ConnectEventMessage';
 import { IConversation } from './../src/IConversation';
-import {
-    createConnectMessage,
-    createDequeueMessage,
-    createDisconnectMessage,
-    createQueueMessage,
-    createUnwatchEventMessage,
-    createWatchEventMessage,
-    IHandoffEventMessage,
-    IHandoffMessage
-} from './../src/IHandoffMessage';
+import { IHandoffMessage } from './../src/IHandoffMessage';
 import { IProvider } from './../src/provider/IProvider';
 
 chai.use(sinonChai);
@@ -69,7 +61,6 @@ describe('agent handoff', () => {
         providerSpy = createIProviderSpy(provider);
         bot = new UniversalBot(connector);
         bot.dialog('/', (session: Session) => {
-            console.log('SENDING INTRO');
             session.send('intro!');
         });
 
@@ -91,79 +82,79 @@ describe('agent handoff', () => {
 
         return new BotTester(bot, CUSTOMER_ADDRESS)
             .sendMessageToBot(customerIntroMessage2, 'intro!')
-            .sendMessageToBot(createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS), 'you\'re now connected to an agent')
+            .sendMessageToBot(new ConnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS), 'you\'re now connected to an agent')
             .sendMessageToBot(agentMessage, userReceptionOfAgentMessage)
             .runTest();
     });
 
-    xdescribe('event message', () => {
-        let eventMessage: IHandoffEventMessage;
+    // xdescribe('event message', () => {
+    //     let eventMessage: IHandoffEventMessage;
 
-        function sendMessageToBotAndGetConversationData(
-            msg: IHandoffEventMessage,
-            expectedResponse?: string | IMessage
-        ):  Promise<IConversation> {
-            return new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(msg, expectedResponse)
-                .runTest()
-                .then(() => provider.getConversationFromCustomerAddress(CUSTOMER_ADDRESS));
-        }
+    //     function sendMessageToBotAndGetConversationData(
+    //         msg: IHandoffEventMessage,
+    //         expectedResponse?: string | IMessage
+    //     ):  Promise<IConversation> {
+    //         return new BotTester(bot, CUSTOMER_ADDRESS)
+    //             .sendMessageToBot(msg, expectedResponse)
+    //             .runTest()
+    //             .then(() => provider.getConversationFromCustomerAddress(CUSTOMER_ADDRESS));
+    //     }
 
-        function ensureProviderDidNotTranscribeMessage(msg: IHandoffEventMessage): void {
-            expect(provider.addAgentMessageToTranscript).not.to.have.been.calledWith(msg);
-            expect(provider.addBotMessageToTranscript).not.to.have.been.calledWith(msg);
-            expect(provider.addCustomerMessageToTranscript).not.to.have.been.calledWith(msg);
-        }
+    //     function ensureProviderDidNotTranscribeMessage(msg: IHandoffEventMessage): void {
+    //         expect(provider.addAgentMessageToTranscript).not.to.have.been.calledWith(msg);
+    //         expect(provider.addBotMessageToTranscript).not.to.have.been.calledWith(msg);
+    //         expect(provider.addCustomerMessageToTranscript).not.to.have.been.calledWith(msg);
+    //     }
 
-        beforeEach(() => {
-            return new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(customerIntroMessage)
-                .runTest();
-        });
+    //     beforeEach(() => {
+    //         return new BotTester(bot, CUSTOMER_ADDRESS)
+    //             .sendMessageToBot(customerIntroMessage)
+    //             .runTest();
+    //     });
 
-        afterEach(() => {
-            ensureProviderDidNotTranscribeMessage(eventMessage);
-        });
+    //     afterEach(() => {
+    //         ensureProviderDidNotTranscribeMessage(eventMessage);
+    //     });
 
-        it('connect sets converation state to Agent and bot responds with connection message to user', () => {
-            eventMessage = createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //     it('connect sets converation state to Agent and bot responds with connection message to user', () => {
+    //         eventMessage = createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(eventMessage, 'you\'re now connected to an agent')
-                .then((convo: IConversation) => {
-                    expect(providerSpy.connectCustomerToAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(convo.conversationState).to.be.equal(ConversationState.Agent);
-                });
-        });
+    //         return sendMessageToBotAndGetConversationData(eventMessage, 'you\'re now connected to an agent')
+    //             .then((convo: IConversation) => {
+    //                 expect(providerSpy.connectCustomerToAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //                 expect(convo.conversationState).to.be.equal(ConversationState.Agent);
+    //             });
+    //     });
 
-        it('disconnect sets converation state to Bot and bot responds with disconnect message to user', () => {
-            eventMessage = createDisconnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //     it('disconnect sets converation state to Bot and bot responds with disconnect message to user', () => {
+    //         eventMessage = createDisconnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS))
-                .then(() => sendMessageToBotAndGetConversationData(eventMessage, 'you\'re no longer connected to the agent'))
-                .then((conversation: IConversation) => {
-                    expect(providerSpy.disconnectCustomerFromAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(conversation.conversationState).to.be.equal(ConversationState.Bot);
-                });
-        });
+    //         return sendMessageToBotAndGetConversationData(createConnectMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS))
+    //             .then(() => sendMessageToBotAndGetConversationData(eventMessage, 'you\'re no longer connected to the agent'))
+    //             .then((conversation: IConversation) => {
+    //                 expect(providerSpy.disconnectCustomerFromAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //                 expect(conversation.conversationState).to.be.equal(ConversationState.Bot);
+    //             });
+    //     });
 
-        it('watch sets conversation state to watch ', () => {
-            eventMessage = createWatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //     it('watch sets conversation state to watch ', () => {
+    //         eventMessage = createWatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(eventMessage)
-                .then((convo: IConversation) => {
-                    expect(providerSpy.watchConversation).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(convo.conversationState).to.be.equal(ConversationState.Watch);
-                });
-        });
+    //         return sendMessageToBotAndGetConversationData(eventMessage)
+    //             .then((convo: IConversation) => {
+    //                 expect(providerSpy.watchConversation).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //                 expect(convo.conversationState).to.be.equal(ConversationState.Watch);
+    //             });
+    //     });
 
-        it('unwatch sets conversation', () => {
-            eventMessage = createWatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //     it('unwatch sets conversation', () => {
+    //         eventMessage = createWatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(eventMessage)
-                .then((convo: IConversation) => {
-                    expect(providerSpy.watchConversation).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(convo.conversationState).to.be.equal(ConversationState.Watch);
-                });
-        });
-    });
+    //         return sendMessageToBotAndGetConversationData(eventMessage)
+    //             .then((convo: IConversation) => {
+    //                 expect(providerSpy.watchConversation).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+    //                 expect(convo.conversationState).to.be.equal(ConversationState.Watch);
+    //             });
+    //     });
+    // });
 });

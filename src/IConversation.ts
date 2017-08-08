@@ -2,14 +2,12 @@ import { IAddress, IMessage } from 'botbuilder';
 import { ConversationState } from './constants';
 
 // What an entry in the customer transcript will have
-export interface ITranscriptLine {
-    timestamp: {};
+export interface ITranscriptLine extends IMessage {
     from: string;
     sentimentScore?: number;
-    text: string;
 }
 
-// What is stored in a conversation. Agent only included if customer is talking to an agent
+// What is stored in a conversation. Agent only included if customer is talking to an agent or if agent is watching
 export interface IConversation {
     customerAddress: IAddress;
     agentAddress?: IAddress;

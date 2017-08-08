@@ -5,13 +5,14 @@ import { ConversationState, MessageSource } from './../src/constants';
 import { IConversation, ITranscriptLine } from './../src/IConversation';
 import { addAgentAddressToMessage, addCustomerAddressToMessage, IHandoffMessage } from './../src/IHandoffMessage';
 import { InMemoryProvider } from './../src/provider/InMemoryProvider';
+
+import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
+import { AgentConnectingIsNotSameAsWatching } from './../src/provider/errors/AgentConnectingIsNotSameAsWatching';
+import { AgentNotInConversationError } from './../src/provider/errors/AgentNotInConversationError';
 import {
-    AgentAlreadyInConversationError,
-    AgentNotInConversationError,
-    AgentWithConvoIdNotEqualToWatchingAgentConvoId,
-    BotAttemptedToRecordMessageWhileAgentHasConnection,
-    IProvider
-} from './../src/provider/IProvider';
+    BotAttemptedToRecordMessageWhileAgentHasConnection
+} from './../src/provider/errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
+import { IProvider } from './../src/provider/IProvider';
 
 const ADDRESS_1: IAddress = { channelId: 'console',
     user: { id: 'userId1', name: 'user1' },
@@ -285,7 +286,6 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                     .then(() => expect.fail('didn\'t throw error when attempting to connect on an agent conversation id that is occupied'))
                     .catch(AgentAlreadyInConversationError, (e: AgentAlreadyInConversationError) => {
                         expect(e).to.be.an.instanceOf(AgentAlreadyInConversationError);
-                        expect(e.message).to.be.equal(new AgentAlreadyInConversationError(agent1Address1.conversation.id).message);
                     });
             });
         });
@@ -359,10 +359,7 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
 
                 return provider.addAgentMessageToTranscript(agentMessage)
                     .then(() => expect.fail('did not throw an error as expected'))
-                    .catch((e: Error) =>
-                        expect(e.message)
-                            .to
-                            .be.equal(`no customer conversation found for agent with conversation id ${agent1Address1.conversation.id}`));
+                    .catch((e: Error) => expect(e).to.be.an.instanceOf(AgentNotInConversationError));
             });
         });
 
@@ -421,14 +418,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
             it('throws error if different agent conversation than watching agent conversation attempts to connect to customer', () => {
                 return provider.connectCustomerToAgent(customer1Address, agent1Address2)
                     .then(() => expect.fail(null, null, 'Should have thrown error or wrong convo id to connect'))
-                    .catch(AgentWithConvoIdNotEqualToWatchingAgentConvoId, (e: AgentWithConvoIdNotEqualToWatchingAgentConvoId) => {
-                        expect(e).to.be.an.instanceOf(AgentWithConvoIdNotEqualToWatchingAgentConvoId);
-                        expect(e.message).to.be
-                            .equal(
-                                new AgentWithConvoIdNotEqualToWatchingAgentConvoId(
-                                    customer1Address.conversation.id,
-                                    agent1Address2.conversation.id
-                                ).message);
+                    .catch(AgentConnectingIsNotSameAsWatching, (e: AgentConnectingIsNotSameAsWatching) => {
+                        expect(e).to.be.an.instanceOf(AgentConnectingIsNotSameAsWatching);
                     });
             });
 

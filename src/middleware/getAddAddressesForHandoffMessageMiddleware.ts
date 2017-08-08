@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird';
 import { Session } from 'botbuilder';
-import { addAgentAddressToMessage, addCustomerAddressToMessage, IHandoffEventMessage } from './../IHandoffMessage';
+import { HandoffEventMessage } from '../eventMessages/HandoffEventMessage';
 
 export function getAddAddressesForHandoffMessageMiddleware(
     isAgent: (session: Session) => Promise<boolean>
@@ -17,14 +17,14 @@ class AddAddressesForHandoffMessageMiddleware {
 
     public getMiddleware(): (session: Session, next: Function) => void {
         return  (session: Session, next: Function) => {
-            const message = session.message;
+            const message = session.message as HandoffEventMessage;
 
             this.isAgent(session)
                 .then((isAgent: boolean) => {
                     if (isAgent) {
-                        addAgentAddressToMessage(message, message.address);
+                        message.agentAddress = message.address;
                     } else {
-                        addCustomerAddressToMessage(message, message.address);
+                        message.customerAddress = message.address;
                     }
 
                     next();

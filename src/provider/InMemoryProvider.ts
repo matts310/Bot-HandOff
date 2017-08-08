@@ -4,13 +4,12 @@ import * as _ from 'lodash';
 import { ConversationState, MessageSource } from '../constants';
 import { createDefaultConversation, IConversation, ITranscriptLine } from '../IConversation';
 import { IHandoffMessage } from '../IHandoffMessage';
-import {
-    AgentAlreadyInConversationError,
-    AgentNotInConversationError,
-    AgentWithConvoIdNotEqualToWatchingAgentConvoId,
-    BotAttemptedToRecordMessageWhileAgentHasConnection,
-    IProvider
-} from './IProvider';
+import { AgentAlreadyInConversationError} from './errors/AgentAlreadyInConversationError';
+import { AgentConnectingIsNotSameAsWatching } from './errors/AgentConnectingIsNotSameAsWatching';
+import { AgentNotInConversationError} from './errors/AgentNotInConversationError';
+import { BotAttemptedToRecordMessageWhileAgentHasConnection} from './errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
+import { CustomerAlreadyConnectedException } from './errors/CustomerAlreadyConnectedException';
+import { IProvider } from './IProvider';
 
 type InMemoryConversationStore = {[s: string]: IConversation};
 
@@ -19,11 +18,7 @@ type AgentToCustomerConversationMap = {
 };
 
 function createTranscriptLineFromMessage(message: builder.IMessage, from: string): ITranscriptLine {
-    return {
-        timestamp: message.timestamp,
-        text: message.text,
-        from
-    };
+    return Object.assign({ from }, _.cloneDeep(message));
 }
 
 function ensureCustomerAddressDefinedOnHandoffMessage(msg: IHandoffMessage): void {
@@ -34,7 +29,7 @@ function ensureCustomerAddressDefinedOnHandoffMessage(msg: IHandoffMessage): voi
 
 function ensureAgentAddressDefinedOnHandoffMessage(msg: IHandoffMessage): void {
     if (!msg.agentAddress) {
-        throw new Error('agent address must be defined on a Handoff message in this function');
+        throw new Error('agent address must be defined');
     }
 }
 
@@ -118,6 +113,11 @@ export class InMemoryProvider implements IProvider {
 
         if (this.agentConversationAlreadyConnected(agentConvoId)) {
             return Promise.reject(new AgentAlreadyInConversationError(agentConvoId));
+        }
+
+        if (this.customerIsConnectedToAgent(customerConvoId)) {
+            return Promise.reject(
+                new CustomerAlreadyConnectedException(`customer ${customerAddress.user.name} is already speaking to an agent`));
         }
 
         this.mapAgentToCustomer(customerAddress, agentConvoId);
@@ -209,6 +209,12 @@ export class InMemoryProvider implements IProvider {
         return !!customerAddress && this.getConversationSynchronously(customerAddress).conversationState === ConversationState.Agent;
     }
 
+    private customerIsConnectedToAgent(customerConvoId: string): boolean {
+        const convo = this.conversations[customerConvoId];
+
+        return convo.conversationState === ConversationState.Agent;
+    }
+
     private mapAgentToCustomer(customerConversation: builder.IAddress, agentConversationId: string): void {
         this.agentToCustomerConversationMap[agentConversationId] = customerConversation;
     }
@@ -244,7 +250,9 @@ export class InMemoryProvider implements IProvider {
 
         if ((convo.conversationState === ConversationState.Watch || convo.conversationState === ConversationState.WatchAndWait) &&
             (convo.agentAddress && convo.agentAddress.conversation.id !== agentConvoId)) {
-                throw new AgentWithConvoIdNotEqualToWatchingAgentConvoId(customerConvoId, agentConvoId);
+                // tslint:disable
+                throw new AgentConnectingIsNotSameAsWatching(`agent ${convo.agentAddress.user.name} is attempting to connect to customer ${convo.customerAddress.user.name}, but was not the same agent that was watching`);
+                //tslint:enable
         }
 
         return this.setConversationState(customerConvoId, ConversationState.Agent, agentAddress);
@@ -258,16 +266,20 @@ export class InMemoryProvider implements IProvider {
         return this.setConversationState(customerConvoId, ConversationState.Wait);
     }
 
-    private setConversationStateToWatch(customerConvoId: string, agentAddress?: builder.IAddress): IConversation {
+    private setConversationStateToWatch(customerConvoId: string, agentAddress: builder.IAddress): IConversation {
         if (this.conversations[customerConvoId].conversationState === ConversationState.Wait) {
-            return this.setConversationStateToWatchAndWait(customerConvoId);
+            return this.setConversationStateToWatchAndWait(customerConvoId, agentAddress);
         }
 
         return this.setConversationState(customerConvoId, ConversationState.Watch, agentAddress);
     }
 
-    private setConversationStateToWatchAndWait(customerConvoId: string): IConversation {
-        return this.setConversationState(customerConvoId, ConversationState.WatchAndWait);
+    private setConversationStateToWatchAndWait(customerConvoId: string, agentAddress?: builder.IAddress): IConversation {
+        if (!agentAddress) {
+            agentAddress = this.conversations[customerConvoId].agentAddress;
+        }
+
+        return this.setConversationState(customerConvoId, ConversationState.WatchAndWait, agentAddress);
     }
 
     private setConversationStateToBot(customerConvoId: string): IConversation {
@@ -288,7 +300,7 @@ export class InMemoryProvider implements IProvider {
         const conversation = this.getConversationSynchronously(customerConvoId);
 
         if (conversation.conversationState === ConversationState.WatchAndWait) {
-            return this.setConversationStateToWatch(customerConvoId);
+            return this.setConversationStateToWatch(customerConvoId, conversation.agentAddress);
         }
 
         return this.setConversationStateToBot(customerConvoId);
