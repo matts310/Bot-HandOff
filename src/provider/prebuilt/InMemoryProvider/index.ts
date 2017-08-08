@@ -11,16 +11,13 @@ import { BotAttemptedToRecordMessageWhileAgentHasConnection} from '../../errors/
 import { CustomerAlreadyConnectedException } from '../../errors/CustomerAlreadyConnectedException';
 import { IProvider } from '../../IProvider';
 import { AgentConvoIdToCustomerAddressProvider } from './AgentConvoIdToCustomerAddressProvider';
+import { InMemoryConversationProvider } from './InMemoryConversationProvider';
 
 type InMemoryConversationStore = {[s: string]: IConversation};
 
 type AgentToCustomerConversationMap = {
     [s: string]: builder.IAddress
 };
-
-function createTranscriptLineFromMessage(message: builder.IMessage, from: string): ITranscriptLine {
-    return Object.assign({ from }, _.cloneDeep(message));
-}
 
 function ensureCustomerAddressDefinedOnHandoffMessage(msg: IHandoffMessage): void {
     if (!msg.customerAddress) {
@@ -47,10 +44,12 @@ function ensureCustomerAndAgentAddressDefined(customerAddress: builder.IAddress,
 export class InMemoryProvider implements IProvider {
     private conversations: InMemoryConversationStore;
     private agentConvoToCustomerAddressProvider: AgentConvoIdToCustomerAddressProvider;
+    private conversationProvider: InMemoryConversationProvider;
 
     constructor() {
         this.conversations = {};
         this.agentConvoToCustomerAddressProvider = new AgentConvoIdToCustomerAddressProvider();
+        this.conversationProvider = new InMemoryConversationProvider(this.conversations);
     }
 
     public addBotMessageToTranscript(message: IHandoffMessage): Promise<IConversation> {
@@ -58,13 +57,13 @@ export class InMemoryProvider implements IProvider {
 
         const customerAddress = message.customerAddress;
 
-        return this.getConversationFromCustomerAddress(customerAddress)
-            .then((convo: IConversation) => {
-                if (convo && convo.conversationState === ConversationState.Agent) {
-                    return Promise.reject(new BotAttemptedToRecordMessageWhileAgentHasConnection(customerAddress.conversation.id));
-                }
-            })
-            .then(() => this.addBotMessageToTranscriptIgnoringConversationState(message));
+        const convo = this.conversationProvider.getConversationFromCustomerAddress(customerAddress);
+
+        if (convo && convo.conversationState === ConversationState.Agent) {
+            return Promise.reject(new BotAttemptedToRecordMessageWhileAgentHasConnection(customerAddress.conversation.id));
+        }
+
+        return this.addBotMessageToTranscriptIgnoringConversationState(message);
     }
 
     public addBotMessageToTranscriptIgnoringConversationState(message: IHandoffMessage): Promise<IConversation> {
@@ -72,7 +71,8 @@ export class InMemoryProvider implements IProvider {
 
         const customerAddress = message.customerAddress;
 
-        return Promise.resolve(this.addToTranscriptOrCreateNewConversation(customerAddress, message, MessageSource.Bot));
+        return Promise.resolve(
+            this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, MessageSource.Bot));
     }
 
     public addCustomerMessageToTranscript(message: IHandoffMessage): Promise<IConversation> {
@@ -80,7 +80,8 @@ export class InMemoryProvider implements IProvider {
 
         const customerAddress = message.customerAddress;
 
-        return Promise.resolve(this.addToTranscriptOrCreateNewConversation(customerAddress, message, customerAddress.user.name));
+        return Promise.resolve(
+            this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, customerAddress.user.name));
     }
 
     public addAgentMessageToTranscript(message: IHandoffMessage): Promise<IConversation> {
@@ -96,12 +97,16 @@ export class InMemoryProvider implements IProvider {
             return Promise.reject(new AgentNotInConversationError(agentAddress.conversation.id));
         }
 
-        this.addToTranscriptOrCreateNewConversation(customerAddress, message, agentAddress.user.name);
+        const convo = this.conversationProvider.addToTranscriptOrCreateNewConversation(customerAddress, message, agentAddress.user.name);
 
-        try {
-            return Promise.resolve(this.setConversationStateToAgent(customerAddress.conversation.id, agentAddress));
-        } catch (e) {
-            return Promise.reject(e);
+        if (convo.conversationState !== ConversationState.Agent) {
+            try {
+                return Promise.resolve(this.conversationProvider.setConversationStateToAgent(customerAddress, agentAddress));
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        } else {
+            return Promise.resolve(convo);
         }
     }
 
@@ -124,7 +129,7 @@ export class InMemoryProvider implements IProvider {
         this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentConvoId, customerAddress);
 
         try {
-            return Promise.resolve(this.setConversationStateToAgent(customerConvoId, agentAddress));
+            return Promise.resolve( this.conversationProvider.setConversationStateToAgent(customerAddress, agentAddress));
         } catch (e) {
             return Promise.reject(e);
         }
@@ -135,39 +140,59 @@ export class InMemoryProvider implements IProvider {
         const agentConvoId: string = agentAddress.conversation.id;
 
         this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentConvoId);
-        this.setConversationStateToBot(customerConvoId);
+        this.conversationProvider.unsetConversationStateToAgent(customerAddress);
 
-        return Promise.resolve(this.getConversationFromCustomerAddress(customerAddress));
+        try {
+            return Promise.resolve(this.getConversationFromCustomerAddress(customerAddress));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
     // QUEUE/DEQUEUE ACTIONS
     public queueCustomerForAgent(customerAddress: builder.IAddress): Promise<IConversation> {
         const customerConvoId: string = customerAddress.conversation.id;
 
-        return Promise.resolve(this.setConversationStateToWait(customerConvoId));
+        try {
+            return Promise.resolve(this.conversationProvider.setConversationStateToWait(customerConvoId));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
     public dequeueCustomerForAgent(customerAddress: builder.IAddress): Promise<IConversation> {
         const customerConvoId: string = customerAddress.conversation.id;
 
-        return Promise.resolve(this.unsetConversationWait(customerConvoId));
+        try {
+            return Promise.resolve(this.conversationProvider.unsetConversationWait(customerConvoId));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
     // WATCH/UNWATCH ACTIONS
     public watchConversation(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
         this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentAddress.conversation.id, customerAddress);
 
-        return Promise.resolve(this.setConversationStateToWatch(customerAddress.conversation.id, agentAddress));
+        try {
+            return Promise.resolve(this.conversationProvider.setConversationStateToWatch(customerAddress, agentAddress));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
     public unwatchConversation(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
         this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentAddress.conversation.id);
 
-        return Promise.resolve(this.unsetConversationWatch(customerAddress.conversation.id));
+        try {
+            return Promise.resolve(this.conversationProvider.unsetConversationToWatch(customerAddress));
+        } catch (e) {
+            return Promise.reject(e);
+        }
     }
 
     public getConversationFromCustomerAddress(customerAddress: builder.IAddress): Promise<IConversation> {
-        return Promise.resolve(this.getConversationSynchronously(customerAddress));
+        return Promise.resolve(this.conversationProvider.getConversationFromCustomerAddress(customerAddress));
     }
 
     public getConversationFromAgentAddress(agentAddress: builder.IAddress): Promise<IConversation> {
@@ -190,112 +215,19 @@ export class InMemoryProvider implements IProvider {
         //tslint:enable
     }
 
-    private addToTranscriptOrCreateNewConversation(
-        customerAddress: builder.IAddress,
-        message: builder.IMessage, from: string
-    ): IConversation {
-        const currentConversation = this.getConversationSynchronously(customerAddress) || this.createNewConversation(message.address);
-
-        currentConversation.transcript.push(createTranscriptLineFromMessage(message, from));
-
-        return currentConversation;
-    }
-
     private agentConversationAlreadyConnected(agentConversationId: string): boolean {
         const customerAddress = this.agentConvoToCustomerAddressProvider.getCustomerAddress(agentConversationId);
 
         // if the customer address does not exist, there is no mapping from the agent conversationId to the customer, therefore there is no
         // conversation between the agent and customer. If one does exist, it can be in a watching state. We only care if the fetched
         // conversation is in an Agent state.
-        return !!customerAddress && this.getConversationSynchronously(customerAddress).conversationState === ConversationState.Agent;
+        return !!customerAddress &&
+            this.conversationProvider.getConversationFromCustomerAddress(customerAddress).conversationState === ConversationState.Agent;
     }
 
     private customerIsConnectedToAgent(customerConvoId: string): boolean {
         const convo = this.conversations[customerConvoId];
 
         return convo.conversationState === ConversationState.Agent;
-    }
-
-    private getConversationSynchronously(customerAddress: string | builder.IAddress): IConversation {
-        return this.conversations[typeof(customerAddress) === 'string' ? customerAddress : customerAddress.conversation.id];
-    }
-
-    private createNewConversation(customerAddress: builder.IAddress): IConversation {
-        const convo: IConversation = createDefaultConversation(customerAddress);
-        convo.customerAddress = customerAddress;
-
-        this.conversations[customerAddress.conversation.id] = convo;
-
-        return convo;
-    }
-
-    private setConversationState(customerConvoId: string, state: ConversationState, agentAddress?: builder.IAddress): IConversation {
-        const conversation = this.getConversationSynchronously(customerConvoId);
-        conversation.conversationState = state;
-        conversation.agentAddress = agentAddress;
-
-        return conversation;
-    }
-
-    private setConversationStateToAgent(customerConvoId: string, agentAddress: builder.IAddress): IConversation {
-        const convo = this.getConversationSynchronously(customerConvoId);
-        const agentConvoId = agentAddress.conversation.id;
-
-        if ((convo.conversationState === ConversationState.Watch || convo.conversationState === ConversationState.WatchAndWait) &&
-            (convo.agentAddress && convo.agentAddress.conversation.id !== agentConvoId)) {
-                // tslint:disable
-                throw new AgentConnectingIsNotSameAsWatching(`agent ${convo.agentAddress.user.name} is attempting to connect to customer ${convo.customerAddress.user.name}, but was not the same agent that was watching`);
-                //tslint:enable
-        }
-
-        return this.setConversationState(customerConvoId, ConversationState.Agent, agentAddress);
-    }
-
-    private setConversationStateToWait(customerConvoId: string): IConversation {
-        if (this.conversations[customerConvoId].conversationState === ConversationState.Watch) {
-            return this.setConversationStateToWatchAndWait(customerConvoId);
-        }
-
-        return this.setConversationState(customerConvoId, ConversationState.Wait);
-    }
-
-    private setConversationStateToWatch(customerConvoId: string, agentAddress: builder.IAddress): IConversation {
-        if (this.conversations[customerConvoId].conversationState === ConversationState.Wait) {
-            return this.setConversationStateToWatchAndWait(customerConvoId, agentAddress);
-        }
-
-        return this.setConversationState(customerConvoId, ConversationState.Watch, agentAddress);
-    }
-
-    private setConversationStateToWatchAndWait(customerConvoId: string, agentAddress?: builder.IAddress): IConversation {
-        if (!agentAddress) {
-            agentAddress = this.conversations[customerConvoId].agentAddress;
-        }
-
-        return this.setConversationState(customerConvoId, ConversationState.WatchAndWait, agentAddress);
-    }
-
-    private setConversationStateToBot(customerConvoId: string): IConversation {
-        return this.setConversationState(customerConvoId, ConversationState.Bot);
-    }
-
-    private unsetConversationWatch(customerConvoId: string): IConversation {
-        const conversation = this.getConversationSynchronously(customerConvoId);
-
-        if (conversation.conversationState === ConversationState.WatchAndWait) {
-            return this.setConversationStateToWait(customerConvoId);
-        }
-
-        return this.setConversationStateToBot(customerConvoId);
-    }
-
-    private unsetConversationWait(customerConvoId: string): IConversation {
-        const conversation = this.getConversationSynchronously(customerConvoId);
-
-        if (conversation.conversationState === ConversationState.WatchAndWait) {
-            return this.setConversationStateToWatch(customerConvoId, conversation.agentAddress);
-        }
-
-        return this.setConversationStateToBot(customerConvoId);
     }
 }

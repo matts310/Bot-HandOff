@@ -18,6 +18,7 @@ import { WatchEventMessage } from './../src/eventMessages/WatchEventMessage';
 import { IConversation } from './../src/IConversation';
 import { IHandoffMessage } from './../src/IHandoffMessage';
 import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
+import { ConversationStateUnchangedException } from './../src/provider/errors/ConversationStateUnchangedException';
 import { IProvider } from './../src/provider/IProvider';
 
 chai.use(sinonChai);
@@ -267,4 +268,30 @@ describe('event message', () => {
                 });
         });
     });
+
+    describe('conversation state unchanged error is thrown when', () => {
+        let expectedErrorEvent: ErrorEventMessage;
+
+        it('wait event message is sent to a conversation that is already waiting', () => {
+            eventMessage = new QueueEventMessage(CUSTOMER_ADDRESS);
+
+            expectedErrorEvent = new ErrorEventMessage(eventMessage, new ConversationStateUnchangedException('conversation was already in state wait'))
+
+            return new BotTester(bot, CUSTOMER_ADDRESS)
+                .sendMessageToBot(eventMessage, 'you\'re all set to talk to an agent. One will be with you as soon as they become available')
+                .sendMessageToBot(eventMessage, expectedErrorEvent)
+                .runTest();
+        });
+
+        it('watch event message is sent to a conversation that is already in watch state', () => {
+            eventMessage = new WatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+
+            expectedErrorEvent = new ErrorEventMessage(eventMessage, new ConversationStateUnchangedException(''))
+
+            return new BotTester(bot, CUSTOMER_ADDRESS)
+                .sendMessageToBot(eventMessage)
+                .sendMessageToBot(eventMessage, expectedErrorEvent)
+                .runTest();
+        });
+    })
 });
