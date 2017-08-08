@@ -3,7 +3,7 @@ import { Session, UniversalBot } from 'botbuilder';
 import { ConversationState, IConversation } from '../IConversation';
 import { IHandoffMessage } from './../IHandoffMessage';
 import { IProvider } from './../provider/IProvider';
-import { Router } from './Router';
+
 
 export function routeAgentMessage(bot: UniversalBot, provider: IProvider): (s: Session) => void {
     return (session: Session) => {
