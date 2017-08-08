@@ -1,15 +1,16 @@
 import * as Promise from 'bluebird';
 import * as builder from 'botbuilder';
 import * as _ from 'lodash';
-import { ConversationState, MessageSource } from '../constants';
-import { createDefaultConversation, IConversation, ITranscriptLine } from '../IConversation';
-import { IHandoffMessage } from '../IHandoffMessage';
-import { AgentAlreadyInConversationError} from './errors/AgentAlreadyInConversationError';
-import { AgentConnectingIsNotSameAsWatching } from './errors/AgentConnectingIsNotSameAsWatching';
-import { AgentNotInConversationError} from './errors/AgentNotInConversationError';
-import { BotAttemptedToRecordMessageWhileAgentHasConnection} from './errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
-import { CustomerAlreadyConnectedException } from './errors/CustomerAlreadyConnectedException';
-import { IProvider } from './IProvider';
+import { ConversationState, MessageSource } from '../../../constants';
+import { createDefaultConversation, IConversation, ITranscriptLine } from '../../../IConversation';
+import { IHandoffMessage } from '../../../IHandoffMessage';
+import { AgentAlreadyInConversationError} from '../../errors/AgentAlreadyInConversationError';
+import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
+import { AgentNotInConversationError} from '../../errors/AgentNotInConversationError';
+import { BotAttemptedToRecordMessageWhileAgentHasConnection} from '../../errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
+import { CustomerAlreadyConnectedException } from '../../errors/CustomerAlreadyConnectedException';
+import { IProvider } from '../../IProvider';
+import { AgentConvoIdToCustomerAddressProvider } from './AgentConvoIdToCustomerAddressProvider';
 
 type InMemoryConversationStore = {[s: string]: IConversation};
 
@@ -45,11 +46,11 @@ function ensureCustomerAndAgentAddressDefined(customerAddress: builder.IAddress,
 
 export class InMemoryProvider implements IProvider {
     private conversations: InMemoryConversationStore;
-    private agentToCustomerConversationMap: AgentToCustomerConversationMap;
+    private agentConvoToCustomerAddressProvider: AgentConvoIdToCustomerAddressProvider;
 
     constructor() {
         this.conversations = {};
-        this.agentToCustomerConversationMap = {};
+        this.agentConvoToCustomerAddressProvider = new AgentConvoIdToCustomerAddressProvider();
     }
 
     public addBotMessageToTranscript(message: IHandoffMessage): Promise<IConversation> {
@@ -87,7 +88,7 @@ export class InMemoryProvider implements IProvider {
 
         const agentAddress = message.agentAddress;
 
-        const customerAddress = this.agentToCustomerConversationMap[agentAddress.conversation.id];
+        const customerAddress = this.agentConvoToCustomerAddressProvider.getCustomerAddress(agentAddress);
 
         if (!customerAddress) {
             const rejectionMessage = `no customer conversation found for agent with conversation id ${agentAddress.conversation.id}`;
@@ -120,7 +121,7 @@ export class InMemoryProvider implements IProvider {
                 new CustomerAlreadyConnectedException(`customer ${customerAddress.user.name} is already speaking to an agent`));
         }
 
-        this.mapAgentToCustomer(customerAddress, agentConvoId);
+        this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentConvoId, customerAddress);
 
         try {
             return Promise.resolve(this.setConversationStateToAgent(customerConvoId, agentAddress));
@@ -133,7 +134,7 @@ export class InMemoryProvider implements IProvider {
         const customerConvoId: string = customerAddress.conversation.id;
         const agentConvoId: string = agentAddress.conversation.id;
 
-        this.unmapAgentToCustomer(agentConvoId);
+        this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentConvoId);
         this.setConversationStateToBot(customerConvoId);
 
         return Promise.resolve(this.getConversationFromCustomerAddress(customerAddress));
@@ -154,13 +155,13 @@ export class InMemoryProvider implements IProvider {
 
     // WATCH/UNWATCH ACTIONS
     public watchConversation(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
-        this.mapAgentToCustomer(customerAddress, agentAddress.conversation.id);
+        this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentAddress.conversation.id, customerAddress);
 
         return Promise.resolve(this.setConversationStateToWatch(customerAddress.conversation.id, agentAddress));
     }
 
     public unwatchConversation(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
-        this.unmapAgentToCustomer(agentAddress.conversation.id);
+        this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentAddress.conversation.id);
 
         return Promise.resolve(this.unsetConversationWatch(customerAddress.conversation.id));
     }
@@ -170,7 +171,7 @@ export class InMemoryProvider implements IProvider {
     }
 
     public getConversationFromAgentAddress(agentAddress: builder.IAddress): Promise<IConversation> {
-        const customerAddress = this.agentToCustomerConversationMap[agentAddress.conversation.id];
+        const customerAddress = this.agentConvoToCustomerAddressProvider.getCustomerAddress(agentAddress);
 
         if (customerAddress) {
             return this.getConversationFromCustomerAddress(customerAddress);
@@ -201,7 +202,7 @@ export class InMemoryProvider implements IProvider {
     }
 
     private agentConversationAlreadyConnected(agentConversationId: string): boolean {
-        const customerAddress = this.agentToCustomerConversationMap[agentConversationId];
+        const customerAddress = this.agentConvoToCustomerAddressProvider.getCustomerAddress(agentConversationId);
 
         // if the customer address does not exist, there is no mapping from the agent conversationId to the customer, therefore there is no
         // conversation between the agent and customer. If one does exist, it can be in a watching state. We only care if the fetched
@@ -213,14 +214,6 @@ export class InMemoryProvider implements IProvider {
         const convo = this.conversations[customerConvoId];
 
         return convo.conversationState === ConversationState.Agent;
-    }
-
-    private mapAgentToCustomer(customerConversation: builder.IAddress, agentConversationId: string): void {
-        this.agentToCustomerConversationMap[agentConversationId] = customerConversation;
-    }
-
-    private unmapAgentToCustomer(agentConversationId: string): void {
-        this.agentToCustomerConversationMap[agentConversationId] = undefined;
     }
 
     private getConversationSynchronously(customerAddress: string | builder.IAddress): IConversation {

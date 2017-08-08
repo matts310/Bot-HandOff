@@ -7,8 +7,8 @@ import { getAddAddressesForHandoffMessageMiddleware } from './middleware/getAddA
 import { getRouteMessgeMiddleware } from './middleware/getRouteMessageMiddleware';
 import { getTranscribeBotMessagesMiddleware } from './middleware/getTranscribeBotMessagesMiddleware';
 import { getTranscribeNonBotMessagesMiddleware } from './middleware/getTranscribeNonBotMessagesMiddleware';
-import { InMemoryProvider } from './provider/InMemoryProvider';
 import { IProvider } from './provider/IProvider';
+import { InMemoryProvider } from './provider/prebuilt/InMemoryProvider';
 import { routeAgentMessage } from './routers/routeAgentMessage';
 import { routeCustomerMessage } from './routers/routeCustomerMessage';
 

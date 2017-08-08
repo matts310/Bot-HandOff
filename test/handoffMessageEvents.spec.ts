@@ -6,7 +6,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ConversationState } from '../src/constants';
 import { QueueEventMessage } from '../src/eventMessages/QueueEventMessage';
-import { InMemoryProvider } from '../src/provider/InMemoryProvider';
+import { InMemoryProvider } from '../src/provider/prebuilt/InMemoryProvider';
 import { applyHandoffMiddleware } from './../src/applyHandoffMiddleware';
 import { ConnectEventMessage } from './../src/eventMessages/ConnectEventMessage';
 import { DequeueEventMessage } from './../src/eventMessages/DequeueEventMessage';

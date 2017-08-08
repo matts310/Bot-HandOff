@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { ConversationState, MessageSource } from './../src/constants';
 import { IConversation, ITranscriptLine } from './../src/IConversation';
 import { addAgentAddressToMessage, addCustomerAddressToMessage, IHandoffMessage } from './../src/IHandoffMessage';
-import { InMemoryProvider } from './../src/provider/InMemoryProvider';
+import { InMemoryProvider } from './../src/provider/prebuilt/InMemoryProvider';
 
 import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
 import { AgentConnectingIsNotSameAsWatching } from './../src/provider/errors/AgentConnectingIsNotSameAsWatching';

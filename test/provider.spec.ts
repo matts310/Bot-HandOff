@@ -1,5 +1,5 @@
 import * as Promise from 'bluebird';
-import { InMemoryProvider } from './../src/provider/InMemoryProvider';
+import { InMemoryProvider } from './../src/provider/prebuilt/InMemoryProvider';
 import { providerTest } from './providerTest';
 
 describe('built in providers', () => {
