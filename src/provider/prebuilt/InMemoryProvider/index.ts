@@ -1,10 +1,9 @@
 import * as Promise from 'bluebird';
 import * as builder from 'botbuilder';
 import * as _ from 'lodash';
-import { ConversationState, createDefaultConversation, IConversation, ITranscriptLine } from '../../../IConversation';
-import { IHandoffMessage, MessageSource } from '../../../IHandoffMessage';
+import { ConversationState, IConversation} from '../../../IConversation';
+import { IHandoffMessage } from '../../../IHandoffMessage';
 import { AgentAlreadyInConversationError} from '../../errors/AgentAlreadyInConversationError';
-import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
 import { AgentNotInConversationError} from '../../errors/AgentNotInConversationError';
 import { BotAttemptedToRecordMessageWhileAgentHasConnection} from '../../errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
 import { CustomerAlreadyConnectedException } from '../../errors/CustomerAlreadyConnectedException';
