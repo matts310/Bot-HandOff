@@ -4,7 +4,6 @@ import { ConsoleConnector, IAddress, IMessage, Message, Session, UniversalBot } 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { ConversationState } from '../src/constants';
 import { QueueEventMessage } from '../src/eventMessages/QueueEventMessage';
 import { InMemoryProvider } from '../src/provider/prebuilt/InMemoryProvider';
 import { applyHandoffMiddleware } from './../src/applyHandoffMiddleware';
@@ -15,7 +14,7 @@ import { ErrorEventMessage } from './../src/eventMessages/ErrorEventMessage';
 import { HandoffEventMessage } from './../src/eventMessages/HandoffEventMessage';
 import { UnwatchEventMessage } from './../src/eventMessages/UnwatchEventMessage';
 import { WatchEventMessage } from './../src/eventMessages/WatchEventMessage';
-import { IConversation } from './../src/IConversation';
+import { ConversationState, IConversation } from './../src/IConversation';
 import { IHandoffMessage } from './../src/IHandoffMessage';
 import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
 import { ConversationStateUnchangedException } from './../src/provider/errors/ConversationStateUnchangedException';

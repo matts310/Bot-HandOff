@@ -1,7 +1,6 @@
 import * as Promise from 'bluebird';
 import { Session, UniversalBot } from 'botbuilder';
-import { ConversationState } from '../constants';
-import { IConversation } from '../IConversation';
+import { ConversationState, IConversation } from '../IConversation';
 import { IHandoffMessage } from './../IHandoffMessage';
 import { IProvider } from './../provider/IProvider';
 import { Router } from './Router';

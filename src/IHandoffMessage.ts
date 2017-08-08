@@ -1,5 +1,10 @@
 import { IAddress, IMessage, Message } from 'botbuilder';
-import { MessageType } from './constants';
+
+export enum MessageSource {
+    Bot = 'Bot',
+    Agent = 'Agent',
+    Customer = 'Customer'
+}
 
 export interface IHandoffMessage extends IMessage {
     customerAddress?: IAddress;

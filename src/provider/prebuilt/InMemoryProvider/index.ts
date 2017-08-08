@@ -1,9 +1,9 @@
 import * as Promise from 'bluebird';
 import * as builder from 'botbuilder';
 import * as _ from 'lodash';
-import { ConversationState, MessageSource } from '../../../constants';
-import { createDefaultConversation, IConversation, ITranscriptLine } from '../../../IConversation';
-import { IHandoffMessage } from '../../../IHandoffMessage';
+// import { ConversationState, MessageSource } from '../../../constants';
+import { ConversationState, createDefaultConversation, IConversation, ITranscriptLine } from '../../../IConversation';
+import { IHandoffMessage, MessageSource } from '../../../IHandoffMessage';
 import { AgentAlreadyInConversationError} from '../../errors/AgentAlreadyInConversationError';
 import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
 import { AgentNotInConversationError} from '../../errors/AgentNotInConversationError';
@@ -205,7 +205,7 @@ export class InMemoryProvider implements IProvider {
         return Promise.resolve(undefined);
     }
 
-    public getCurrentConversations(): Promise<IConversation[]> {
+    public getAllConversations(): Promise<IConversation[]> {
         return Promise.resolve(_.reduce(this.conversations, (accumulator: IConversation[], currentConvo: IConversation) => {
             accumulator.push(_.cloneDeep(currentConvo));
 

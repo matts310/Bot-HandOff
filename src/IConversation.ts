@@ -1,5 +1,12 @@
 import { IAddress, IMessage } from 'botbuilder';
-import { ConversationState } from './constants';
+
+export enum ConversationState {
+    Bot = 'bot',
+    Wait = 'wait',
+    Agent = 'agent',
+    Watch = 'watch',
+    WatchAndWait = 'watch & wait'
+}
 
 // What an entry in the customer transcript will have
 export interface ITranscriptLine extends IMessage {

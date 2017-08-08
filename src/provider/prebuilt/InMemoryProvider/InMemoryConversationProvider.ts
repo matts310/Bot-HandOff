@@ -1,9 +1,8 @@
 import { IAddress, IMessage } from 'botbuilder';
 import { clone } from 'lodash';
-import { ConversationState, MessageSource } from '../../../constants';
 import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
 import { ConversationStateUnchangedException } from '../../errors/ConversationStateUnchangedException';
-import { createDefaultConversation, IConversation } from './../../../IConversation';
+import { ConversationState, createDefaultConversation, IConversation } from './../../../IConversation';
 
 function getConversationIdFromAddresOrString(addressOrConvoId: string | IAddress): string {
     return typeof(addressOrConvoId) === 'string' ? addressOrConvoId : addressOrConvoId.conversation.id;

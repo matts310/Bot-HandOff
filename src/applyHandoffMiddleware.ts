@@ -1,7 +1,6 @@
 import * as Promise from 'bluebird';
 import { IAddress, IMessage, Message, Session, UniversalBot } from 'botbuilder';
-import { ConversationState, MessageType } from './constants';
-import { IConversation } from './IConversation';
+import { ConversationState, IConversation } from './IConversation';
 import { applyHandoffEventListeners } from './middleware/applyHandoffEventListeners';
 import { getAddAddressesForHandoffMessageMiddleware } from './middleware/getAddAddressesForHandoffMessageMiddleware';
 import { getRouteMessgeMiddleware } from './middleware/getRouteMessageMiddleware';

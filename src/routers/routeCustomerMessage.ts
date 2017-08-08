@@ -1,6 +1,5 @@
 import { IAddress, Message, Session, UniversalBot } from 'botbuilder';
-import { ConversationState } from '../constants';
-import { IConversation } from '../IConversation';
+import { ConversationState, IConversation } from '../IConversation';
 import { IProvider } from './../provider/IProvider';
 
     // TODO move these

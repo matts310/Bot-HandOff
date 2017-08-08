@@ -1,6 +1,6 @@
 import * as Promise from 'bluebird';
 import { IAddress, IMessage, Message, UniversalBot } from 'botbuilder';
-import { MessageType } from '../constants';
+import { EventMessageType } from '../eventMessages/EventMessageType';
 import { HandoffEventMessage, isIHandoffEventMessage } from '../eventMessages/HandoffEventMessage';
 import { IConversation } from '../IConversation';
 import { IProvider } from '../provider/IProvider';
@@ -20,12 +20,12 @@ class HandoffMessageEventListnerApplicator {
     }
 
     public applyHandoffEventListeners(): void {
-        this.bot.on(MessageType.Connect, this.wrapEventHandlerWithErrorPropagator(this.handleConnectEvent.bind(this)));
-        this.bot.on(MessageType.Disconnect, this.wrapEventHandlerWithErrorPropagator(this.handleDisconnectEvent.bind(this)));
-        this.bot.on(MessageType.Queue, this.wrapEventHandlerWithErrorPropagator(this.handleQueueEvent.bind(this)));
-        this.bot.on(MessageType.Dequeue, this.wrapEventHandlerWithErrorPropagator(this.handleDequeueEvent.bind(this)));
-        this.bot.on(MessageType.Watch, this.wrapEventHandlerWithErrorPropagator(this.handleWatchEvent.bind(this)));
-        this.bot.on(MessageType.Unwatch, this.wrapEventHandlerWithErrorPropagator(this.handleUnwatchEvent.bind(this)));
+        this.bot.on(EventMessageType.Connect, this.wrapEventHandlerWithErrorPropagator(this.handleConnectEvent.bind(this)));
+        this.bot.on(EventMessageType.Disconnect, this.wrapEventHandlerWithErrorPropagator(this.handleDisconnectEvent.bind(this)));
+        this.bot.on(EventMessageType.Queue, this.wrapEventHandlerWithErrorPropagator(this.handleQueueEvent.bind(this)));
+        this.bot.on(EventMessageType.Dequeue, this.wrapEventHandlerWithErrorPropagator(this.handleDequeueEvent.bind(this)));
+        this.bot.on(EventMessageType.Watch, this.wrapEventHandlerWithErrorPropagator(this.handleWatchEvent.bind(this)));
+        this.bot.on(EventMessageType.Unwatch, this.wrapEventHandlerWithErrorPropagator(this.handleUnwatchEvent.bind(this)));
     }
 
     // tslint:disable

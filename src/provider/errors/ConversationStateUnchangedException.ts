@@ -1,5 +1,3 @@
-import { ConversationState } from '../../constants';
-
 export class ConversationStateUnchangedException extends Error {
     constructor(msg: string) {
         super(msg);
