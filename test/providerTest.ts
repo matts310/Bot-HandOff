@@ -1,10 +1,8 @@
 import * as Promise from 'bluebird';
-import { IAddress, IMessage, Message } from 'botbuilder';
+import { IAddress, Message } from 'botbuilder';
 import { expect } from 'chai';
 import { ConversationState, IConversation, ITranscriptLine } from './../src/IConversation';
-import { addAgentAddressToMessage, addCustomerAddressToMessage, IHandoffMessage, MessageSource } from './../src/IHandoffMessage';
-import { InMemoryProvider } from './../src/provider/prebuilt/InMemoryProvider';
-
+import { addAgentAddressToMessage, addCustomerAddressToMessage } from './../src/IHandoffMessage';
 import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
 import { AgentConnectingIsNotSameAsWatching } from './../src/provider/errors/AgentConnectingIsNotSameAsWatching';
 import { AgentNotInConversationError } from './../src/provider/errors/AgentNotInConversationError';
