@@ -24,7 +24,10 @@
     "bot",
     "handover",
     "hand off",
-    "bot framework"
+    "bot framework",
+    "customer service",
+    "chatbot",
+    "mbf"
   ],
   "dependencies": {
     "bluebird": "^3.5.0",
