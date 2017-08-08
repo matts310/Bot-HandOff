@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import { IAddress, IMessage, Message, UniversalBot } from 'botbuilder';
 import { EventMessageType } from '../eventMessages/EventMessageType';
-import { HandoffEventMessage, isIHandoffEventMessage } from '../eventMessages/HandoffEventMessage';
+import { HandoffEventMessage } from '../eventMessages/HandoffEventMessage';
 import { IConversation } from '../IConversation';
 import { IProvider } from '../provider/IProvider';
 import { ErrorEventMessage } from './../eventMessages/ErrorEventMessage';
