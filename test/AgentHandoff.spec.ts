@@ -1,15 +1,11 @@
 import * as Promise from 'bluebird';
 import { BotTester } from 'bot-tester';
 import { ConsoleConnector, IAddress, Message, Session, UniversalBot } from 'botbuilder';
-import * as chai from 'chai';
+import { expect } from 'chai';
 import { InMemoryProvider } from '../src/provider/prebuilt/InMemoryProvider';
 import { applyHandoffMiddleware } from './../src/applyHandoffMiddleware';
 import { ConnectEventMessage } from './../src/eventMessages/ConnectEventMessage';
-import { IConversation } from './../src/IConversation';
-import { IHandoffMessage } from './../src/IHandoffMessage';
 import { IProvider } from './../src/provider/IProvider';
-
-const expect = chai.expect;
 
 const connector = new ConsoleConnector();
 
