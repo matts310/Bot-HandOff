@@ -20,12 +20,10 @@ import { WatchEventMessage } from './../src/eventMessages/WatchEventMessage';
 import { defaultSuccessHandlers } from './../src/EventSuccessHandlers';
 import { ConversationState, IConversation } from './../src/IConversation';
 import { addCustomerAddressToMessage, IHandoffMessage } from './../src/IHandoffMessage';
-import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
 import { AgentNotWatchingConversationError } from './../src/provider/errors/AgentNotWatchingConversationError';
-import { ConversationStateUnchangedException } from './../src/provider/errors/ConversationStateUnchangedException';
 import { CustomerAlreadyQueuedError } from './../src/provider/errors/CustomerAlreadyQueuedError';
 import { CustomerConnectedToAnotherAgentError } from './../src/provider/errors/CustomerConnectedToAnotherAgentError';
-import { CustomernotConnectedToAgentError } from './../src/provider/errors/CustomernotConnectedToAgentError';
+import { CustomerNotConnectedToAgentError } from './../src/provider/errors/CustomernotConnectedToAgentError';
 import { CustomerNotQueuedError } from './../src/provider/errors/CustomerNotQueuedError';
 import { IProvider } from './../src/provider/IProvider';
 
@@ -214,7 +212,7 @@ describe('event message', () => {
 
         it('returns a CustomerNotConnectedToAgentError event if the customer is not connected to an agent', () => {
             eventMessage = new DisconnectEventMessage(CUSTOMER_ADDRESS);
-            const errorMessage = new ErrorEventMessage(eventMessage, new CustomernotConnectedToAgentError());
+            const errorMessage = new ErrorEventMessage(eventMessage, new CustomerNotConnectedToAgentError());
 
             return sendMessageToBotAndGetConversationData(eventMessage, errorMessage);
         });

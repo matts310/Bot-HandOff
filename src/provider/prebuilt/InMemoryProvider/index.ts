@@ -3,12 +3,11 @@ import * as builder from 'botbuilder';
 import * as _ from 'lodash';
 import { ConversationState, IConversation} from '../../../IConversation';
 import { IHandoffMessage } from '../../../IHandoffMessage';
-import { AgentAlreadyInConversationError} from '../../errors/AgentAlreadyInConversationError';
 import { AgentNotInConversationError} from '../../errors/AgentNotInConversationError';
 import { BotAttemptedToRecordMessageWhileAgentHasConnection} from '../../errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
 import { CustomerConnectedToAnotherAgentError } from '../../errors/CustomerConnectedToAnotherAgentError';
 import { IProvider } from '../../IProvider';
-import { CustomernotConnectedToAgentError } from './../../errors/CustomernotConnectedToAgentError';
+import { CustomerNotConnectedToAgentError } from './../../errors/CustomerNotConnectedToAgentError';
 import { AgentConvoIdToCustomerAddressProvider } from './AgentConvoIdToCustomerAddressProvider';
 import { InMemoryConversationProvider } from './InMemoryConversationProvider';
 
@@ -132,7 +131,7 @@ export class InMemoryProvider implements IProvider {
             const convo = this.conversationProvider.getConversationFromCustomerAddress(customerAddress);
 
             if (!convo.agentAddress) {
-                throw new CustomernotConnectedToAgentError();
+                throw new CustomerNotConnectedToAgentError();
             }
 
             this.agentConvoToCustomerAddressProvider.removeAgentConvoId(convo.agentAddress.conversation.id);

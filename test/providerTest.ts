@@ -6,15 +6,13 @@ import { CustomerCannotQueueError } from '../src/provider/errors/CustomerCannotQ
 import { ConversationState, IConversation, ITranscriptLine } from './../src/IConversation';
 import { addAgentAddressToMessage, addCustomerAddressToMessage } from './../src/IHandoffMessage';
 import { IHandoffMessage } from './../src/IHandoffMessage';
-import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
-import { AgentConnectingIsNotSameAsWatching } from './../src/provider/errors/AgentConnectingIsNotSameAsWatching';
 import { AgentNotInConversationError } from './../src/provider/errors/AgentNotInConversationError';
 import {
     BotAttemptedToRecordMessageWhileAgentHasConnection
 } from './../src/provider/errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
 import { CustomerAlreadyQueuedError } from './../src/provider/errors/CustomerAlreadyQueuedError';
 import { CustomerConnectedToAnotherAgentError } from './../src/provider/errors/CustomerConnectedToAnotherAgentError';
-import { CustomernotConnectedToAgentError } from './../src/provider/errors/CustomernotConnectedToAgentError';
+import { CustomerNotConnectedToAgentError } from './../src/provider/errors/CustomerNotConnectedToAgentError';
 import { IProvider } from './../src/provider/IProvider';
 
 const CUSTOMER_1_ADDRESS: IAddress = { channelId: 'console',
@@ -239,8 +237,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
                 // expect.fail(null, null, 'this is not yet implemented');
                 return provider.disconnectCustomerFromAgent(CUSTOMER_2_ADDRESS)
                     .then(() => expect.fail(null, null, 'should have thrown CustomernotConnectedToAgentError'))
-                    .catch(CustomernotConnectedToAgentError, (e: CustomernotConnectedToAgentError) => {
-                        expect(e).to.be.an.instanceOf(CustomernotConnectedToAgentError);
+                    .catch(CustomerNotConnectedToAgentError, (e: CustomerNotConnectedToAgentError) => {
+                        expect(e).to.be.an.instanceOf(CustomerNotConnectedToAgentError);
                     });
             });
         });

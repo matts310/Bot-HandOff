@@ -1,7 +1,5 @@
 import { IAddress, IMessage } from 'botbuilder';
 import { clone } from 'lodash';
-import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
-import { ConversationStateUnchangedException } from '../../errors/ConversationStateUnchangedException';
 import { CustomerAlreadyQueuedError } from '../../errors/CustomerAlreadyQueuedError';
 import { CustomerCannotQueueError } from '../../errors/CustomerCannotQueueError';
 import { CustomerNotQueuedError } from '../../errors/CustomerNotQueuedError';
@@ -11,10 +9,6 @@ import { InMemoryConversationAgentManager } from './InMemoryConversationAgentMan
 
 function getConversationIdFromAddresOrString(addressOrConvoId: string | IAddress): string {
     return typeof(addressOrConvoId) === 'string' ? addressOrConvoId : addressOrConvoId.conversation.id;
-}
-
-function isNewConversationStateTheSame(convo: IConversation, newState: ConversationState): boolean {
-    return convo.conversationState === newState;
 }
 
 export class InMemoryConversationProvider {
@@ -123,10 +117,6 @@ export class InMemoryConversationProvider {
 
     private setConversationState(customerConvo: string | IAddress, state: ConversationState, agentAddress?: IAddress): IConversation {
         const convo = this.getConversationFromCustomerAddress(customerConvo);
-
-        if (isNewConversationStateTheSame(convo, state)) {
-            throw new ConversationStateUnchangedException(`conversation was already in state ${state}`);
-        }
 
         convo.conversationState = state;
 
