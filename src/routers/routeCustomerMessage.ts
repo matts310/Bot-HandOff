@@ -33,18 +33,12 @@ export function routeCustomerMessage(bot: UniversalBot, provider: IProvider): (s
                     const agentMirrorMessage = Object.assign({}, session.message, { address: agentAddress, value: 'customerMessage'});
 
                     switch (convo.conversationState) {
-                        case ConversationState.Watch:
-                            bot.send(agentMirrorMessage);
                         case ConversationState.Bot:
                             return next();
                         case ConversationState.Agent:
                             return bot.send(agentMirrorMessage);
                         case ConversationState.Wait:
                             // TODO make this customizable
-                            return sendCustomerMessage('please hold on while we connect you to an agent', customerAddress);
-                        case ConversationState.WatchAndWait:
-                            bot.send(agentMirrorMessage);
-
                             return sendCustomerMessage('please hold on while we connect you to an agent', customerAddress);
                         default:
                             next();

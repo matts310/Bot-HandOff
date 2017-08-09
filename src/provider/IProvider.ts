@@ -16,7 +16,7 @@ export interface IProvider {
     */
 
     connectCustomerToAgent(customerAddress: IAddress, agentAddress: IAddress): Promise<IConversation>;
-    disconnectCustomerFromAgent(customerAddress: IAddress, agentAddress: IAddress): Promise<IConversation>;
+    disconnectCustomerFromAgent(customerAddress: IAddress, agentAddress?: IAddress): Promise<IConversation>;
 
     queueCustomerForAgent(customerAddress: IAddress): Promise<IConversation>;
     dequeueCustomerForAgent(customerAddress: IAddress): Promise<IConversation>;

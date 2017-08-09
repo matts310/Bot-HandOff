@@ -6,8 +6,9 @@ import { IHandoffMessage } from '../../../IHandoffMessage';
 import { AgentAlreadyInConversationError} from '../../errors/AgentAlreadyInConversationError';
 import { AgentNotInConversationError} from '../../errors/AgentNotInConversationError';
 import { BotAttemptedToRecordMessageWhileAgentHasConnection} from '../../errors/BotAttemptedToRecordMessageWhileAgentHasConnection';
-import { CustomerAlreadyConnectedException } from '../../errors/CustomerAlreadyConnectedException';
+import { CustomerConnectedToAnotherAgentError } from '../../errors/CustomerConnectedToAnotherAgentError';
 import { IProvider } from '../../IProvider';
+import { CustomernotConnectedToAgentError } from './../../errors/CustomernotConnectedToAgentError';
 import { AgentConvoIdToCustomerAddressProvider } from './AgentConvoIdToCustomerAddressProvider';
 import { InMemoryConversationProvider } from './InMemoryConversationProvider';
 
@@ -115,33 +116,29 @@ export class InMemoryProvider implements IProvider {
         const customerConvoId: string = customerAddress.conversation.id;
         const agentConvoId: string = agentAddress.conversation.id;
 
-        if (this.agentConversationAlreadyConnected(agentConvoId)) {
-            return Promise.reject(new AgentAlreadyInConversationError(agentConvoId));
-        }
-
-        if (this.customerIsConnectedToAgent(customerConvoId)) {
-            return Promise.reject(
-                new CustomerAlreadyConnectedException(`customer ${customerAddress.user.name} is already speaking to an agent`));
-        }
-
-        this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentConvoId, customerAddress);
-
         try {
-            return Promise.resolve( this.conversationProvider.setConversationStateToAgent(customerAddress, agentAddress));
+            this.conversationProvider.setConversationStateToAgent(customerAddress, agentAddress);
+            this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentConvoId, customerAddress);
+
+            return Promise.resolve(this.conversationProvider.getConversationFromCustomerAddress(customerAddress));
         } catch (e) {
             return Promise.reject(e);
         }
     }
 
-    public disconnectCustomerFromAgent(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
-        const customerConvoId: string = customerAddress.conversation.id;
-        const agentConvoId: string = agentAddress.conversation.id;
-
-        this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentConvoId);
-        this.conversationProvider.unsetConversationStateToAgent(customerAddress);
-
+    // TODO remove agent address
+    public disconnectCustomerFromAgent(customerAddress: builder.IAddress): Promise<IConversation> {
         try {
-            return Promise.resolve(this.getConversationFromCustomerAddress(customerAddress));
+            const convo = this.conversationProvider.getConversationFromCustomerAddress(customerAddress);
+
+            if (!convo.agentAddress) {
+                throw new CustomernotConnectedToAgentError();
+            }
+
+            this.agentConvoToCustomerAddressProvider.removeAgentConvoId(convo.agentAddress.conversation.id);
+            this.conversationProvider.unsetConversationStateToAgent(customerAddress);
+
+            return Promise.resolve(convo);
         } catch (e) {
             return Promise.reject(e);
         }
@@ -183,7 +180,7 @@ export class InMemoryProvider implements IProvider {
         this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentAddress.conversation.id);
 
         try {
-            return Promise.resolve(this.conversationProvider.unsetConversationToWatch(customerAddress));
+            return Promise.resolve(this.conversationProvider.removeAgentFromWatch(customerAddress, agentAddress));
         } catch (e) {
             return Promise.reject(e);
         }

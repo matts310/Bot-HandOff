@@ -1,6 +1,8 @@
 import { IAddress } from 'botbuilder';
 import { isEqual, remove } from 'lodash';
+import { CustomerConnectedToAnotherAgentError } from '../../errors/CustomerConnectedToAnotherAgentError';
 import { IConversation } from './../../../IConversation';
+import { AgentAlreadyInConversationError } from './../../errors/AgentAlreadyInConversationError';
 
 function getConversationIdFromAddresOrString(addressOrConvoId: string | IAddress): string {
     return typeof(addressOrConvoId) === 'string' ? addressOrConvoId : addressOrConvoId.conversation.id;
@@ -38,12 +40,12 @@ export class InMemoryConversationAgentManager {
         const convo = this.getConvo(customerAddressOrConvoId);
         const initialAgentWatchCount = convo.watchingAgents.length;
 
-        convo.watchingAgents = remove(convo.watchingAgents, (addr: IAddress) => isEqual(addr, agentAddress));
+        remove(convo.watchingAgents, (addr: IAddress) => isEqual(addr, agentAddress));
 
         return convo.watchingAgents.length !== initialAgentWatchCount;
     }
 
-    /**
+    /**3
      * sets the conversation to be connected to agent. Adds the agent address to the watch list if it is not already present
      *
      * @param customerAddressOrConvoId address of customer conversation
@@ -52,8 +54,12 @@ export class InMemoryConversationAgentManager {
     public connectConversationToAgent(customerAddressOrConvoId: string | IAddress, agentAddress: IAddress): void {
         const convo = this.getConvo(customerAddressOrConvoId);
 
-        if (!convo.agentAddress) {
-            // another agent is already in conversation with this customer error
+        if (convo.agentAddress) {
+            if (isEqual(convo.agentAddress, agentAddress)) {
+                throw new AgentAlreadyInConversationError();
+            } else {
+                throw new CustomerConnectedToAnotherAgentError();
+            }
         }
 
         convo.agentAddress = agentAddress;
@@ -65,12 +71,12 @@ export class InMemoryConversationAgentManager {
      *
      * @param customerAddressOrConvoId address of customer conversation
      */
-    public removeConnectedAgent(customerAddressOrConvoId: string): void {
+    public removeConnectedAgent(customerAddressOrConvoId: string | IAddress): void {
         const convo = this.getConvo(customerAddressOrConvoId);
         const connectedAgentAddress = convo.agentAddress;
 
         if (!connectedAgentAddress) {
-            // no agent is connected error
+            throw new Error('no agent is connected');
         }
 
         this.removeWatchingAgent(customerAddressOrConvoId, connectedAgentAddress);

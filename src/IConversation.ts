@@ -3,9 +3,7 @@ import { IAddress, IMessage } from 'botbuilder';
 export enum ConversationState {
     Bot = 'bot',
     Wait = 'wait',
-    Agent = 'agent',
-    Watch = 'watch',
-    WatchAndWait = 'watch & wait'
+    Agent = 'agent'
 }
 
 export interface ITranscriptLine extends IMessage {

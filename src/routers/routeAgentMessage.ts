@@ -4,7 +4,6 @@ import { ConversationState, IConversation } from '../IConversation';
 import { IHandoffMessage } from './../IHandoffMessage';
 import { IProvider } from './../provider/IProvider';
 
-
 export function routeAgentMessage(bot: UniversalBot, provider: IProvider): (s: Session) => void {
     return (session: Session) => {
         const agentAddress = session.message.address;
