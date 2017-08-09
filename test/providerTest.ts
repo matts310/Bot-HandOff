@@ -60,7 +60,7 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
     CUSTOMER_1_INTRO_MESSAGE.customerAddress = CUSTOMER_1_ADDRESS;
     CUSTOMER_2_INTRO_MESSAGE.customerAddress = CUSTOMER_2_ADDRESS;
 
-    describe.only(providerName, () => {
+    describe(providerName, () => {
         beforeEach(() => {
             return getNewProvider()
                 .then((newProvider: IProvider) => provider = newProvider)

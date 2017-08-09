@@ -4,7 +4,9 @@ import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnecting
 import { ConversationStateUnchangedException } from '../../errors/ConversationStateUnchangedException';
 import { CustomerAlreadyQueuedError } from '../../errors/CustomerAlreadyQueuedError';
 import { CustomerCannotQueueError } from '../../errors/CustomerCannotQueueError';
+import { CustomerNotQueuedError } from '../../errors/CustomerNotQueuedError';
 import { ConversationState, createDefaultConversation, IConversation } from './../../../IConversation';
+import { AgentNotWatchingConversationError } from './../../errors/AgentNotWatchingConversationError';
 import { InMemoryConversationAgentManager } from './InMemoryConversationAgentManager';
 
 function getConversationIdFromAddresOrString(addressOrConvoId: string | IAddress): string {
@@ -85,13 +87,15 @@ export class InMemoryConversationProvider {
     public unsetConversationWait(customerConvo: string): IConversation {
         const conversation = this.getConversationFromCustomerAddress(customerConvo);
 
+        if (conversation.conversationState === ConversationState.Agent || conversation.conversationState === ConversationState.Bot) {
+            throw new CustomerNotQueuedError();
+        }
+
         return this.setConversationStateToBot(customerConvo);
     }
 
-    public setConversationStateToWatch(customerAddress: string | IAddress, agentAddress?: IAddress): IConversation {
+    public setConversationStateToWatch(customerAddress: string | IAddress, agentAddress: IAddress): IConversation {
         const convo = this.getConversationFromCustomerAddress(customerAddress);
-
-        agentAddress = agentAddress || convo.agentAddress;
 
         this.agentManager.addWatchingAgent(customerAddress, agentAddress);
 
@@ -101,9 +105,11 @@ export class InMemoryConversationProvider {
     public removeAgentFromWatch(customerAddress: string | IAddress, agentAddress: IAddress): IConversation {
         const convo = this.getConversationFromCustomerAddress(customerAddress);
 
-        this.agentManager.removeWatchingAgent(customerAddress, agentAddress);
+        if (!this.agentManager.removeWatchingAgent(customerAddress, agentAddress)) {
+            throw new AgentNotWatchingConversationError();
+        }
 
-        return this.setConversationStateToBot(customerAddress);
+        return convo;
     }
 
     private setConversationStateToBot(customerAddress: string | IAddress): IConversation {

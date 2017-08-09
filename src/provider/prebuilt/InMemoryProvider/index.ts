@@ -167,8 +167,6 @@ export class InMemoryProvider implements IProvider {
 
     // WATCH/UNWATCH ACTIONS
     public watchConversation(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
-        this.agentConvoToCustomerAddressProvider.linkCustomerAddressToAgentConvoId(agentAddress.conversation.id, customerAddress);
-
         try {
             return Promise.resolve(this.conversationProvider.setConversationStateToWatch(customerAddress, agentAddress));
         } catch (e) {
@@ -177,8 +175,6 @@ export class InMemoryProvider implements IProvider {
     }
 
     public unwatchConversation(customerAddress: builder.IAddress, agentAddress: builder.IAddress): Promise<IConversation> {
-        this.agentConvoToCustomerAddressProvider.removeAgentConvoId(agentAddress.conversation.id);
-
         try {
             return Promise.resolve(this.conversationProvider.removeAgentFromWatch(customerAddress, agentAddress));
         } catch (e) {
