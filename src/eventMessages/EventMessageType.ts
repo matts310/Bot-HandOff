@@ -5,5 +5,6 @@ export enum EventMessageType {
     Unwatch = '__unwatch__',
     Queue = '__queue__',
     Dequeue = '__dequeue__',
-    Error = '__handoffError__'
+    Error = '__handoffError__',
+    Success = '__handoffSuccess__'
 }

@@ -1,98 +1,98 @@
 import * as Promise from 'bluebird';
-import { IAddress, IMessage, Message, UniversalBot } from 'botbuilder';
+import { IAddress, Message, UniversalBot } from 'botbuilder';
 import { EventMessageType } from '../eventMessages/EventMessageType';
 import { HandoffEventMessage } from '../eventMessages/HandoffEventMessage';
 import { IConversation } from '../IConversation';
 import { IProvider } from '../provider/IProvider';
 import { ErrorEventMessage } from './../eventMessages/ErrorEventMessage';
+import { EventSuccessHandler, EventSuccessHandlers } from './../EventSuccessHandlers';
 
-export function applyHandoffEventListeners(bot: UniversalBot, provider: IProvider): void {
-    return new HandoffMessageEventListnerApplicator(bot, provider).applyHandoffEventListeners();
+export function applyHandoffEventListeners(bot: UniversalBot, provider: IProvider, eventSuccessHandlers: EventSuccessHandlers): void {
+    return new HandoffMessageEventListnerApplicator(bot, provider, eventSuccessHandlers).applyHandoffEventListeners();
 }
 
 class HandoffMessageEventListnerApplicator {
     private provider: IProvider;
     private bot: UniversalBot;
+    private eventSuccessHandlers: EventSuccessHandlers;
 
-    constructor(bot: UniversalBot, provider: IProvider) {
+    constructor(bot: UniversalBot, provider: IProvider, eventSuccessHandlers: EventSuccessHandlers) {
         this.bot = bot;
         this.provider = provider;
+        this.eventSuccessHandlers = eventSuccessHandlers;
     }
 
     public applyHandoffEventListeners(): void {
-        this.bot.on(EventMessageType.Connect, this.wrapEventHandlerWithErrorPropagator(this.handleConnectEvent.bind(this)));
-        this.bot.on(EventMessageType.Disconnect, this.wrapEventHandlerWithErrorPropagator(this.handleDisconnectEvent.bind(this)));
-        this.bot.on(EventMessageType.Queue, this.wrapEventHandlerWithErrorPropagator(this.handleQueueEvent.bind(this)));
-        this.bot.on(EventMessageType.Dequeue, this.wrapEventHandlerWithErrorPropagator(this.handleDequeueEvent.bind(this)));
-        this.bot.on(EventMessageType.Watch, this.wrapEventHandlerWithErrorPropagator(this.handleWatchEvent.bind(this)));
-        this.bot.on(EventMessageType.Unwatch, this.wrapEventHandlerWithErrorPropagator(this.handleUnwatchEvent.bind(this)));
+        this.bot.on(
+            EventMessageType.Connect,
+            this.wrapEventHandlerWithResultPropagator(
+                this.handleConnectEvent.bind(this),
+                this.eventSuccessHandlers.connectSuccess.bind(this)));
+        this.bot.on(
+            EventMessageType.Disconnect,
+            this.wrapEventHandlerWithResultPropagator(
+                this.handleDisconnectEvent.bind(this),
+                this.eventSuccessHandlers.disconnectSuccess.bind(this)));
+        this.bot.on(
+            EventMessageType.Queue,
+            this.wrapEventHandlerWithResultPropagator(
+                this.handleQueueEvent.bind(this),
+                this.eventSuccessHandlers.queueSuccess.bind(this)));
+        this.bot.on(
+            EventMessageType.Dequeue,
+            this.wrapEventHandlerWithResultPropagator(
+                this.handleDequeueEvent.bind(this),
+                this.eventSuccessHandlers.dequeueSuccess.bind(this)));
+
+        this.bot.on(
+            EventMessageType.Watch,
+            this.wrapEventHandlerWithResultPropagator(
+                this.handleWatchEvent.bind(this),
+                this.eventSuccessHandlers.watchSuccess.bind(this)));
+
+        this.bot.on(
+            EventMessageType.Unwatch,
+            this.wrapEventHandlerWithResultPropagator(
+                this.handleUnwatchEvent.bind(this),
+                this.eventSuccessHandlers.unwatchSuccess.bind(this)));
     }
 
     // tslint:disable
-    private wrapEventHandlerWithErrorPropagator(fn: (msg: HandoffEventMessage) => Promise<any>): (msg: HandoffEventMessage) => Promise<any> {
+    private wrapEventHandlerWithResultPropagator(
+        fn: (msg: HandoffEventMessage) => Promise<any>,
+        eventSuccessHandler: EventSuccessHandler
+    ): (msg: HandoffEventMessage) => Promise<any> {
     // tslint:enable
         return (msg: HandoffEventMessage) => fn(msg)
+            .then(() => {
+                eventSuccessHandler(this.bot, msg);
+            })
             .catch((e: {}) => {
                 this.bot.send(new ErrorEventMessage(msg, e));
             });
     }
 
-    private handleQueueEvent(msg: HandoffEventMessage): Promise<void> {
-        return this.provider.queueCustomerForAgent(msg.customerAddress)
-            // TODO abstract this response
-            .then(() =>
-                this.sendCustomerMessage(
-                    'you\'re all set to talk to an agent. One will be with you as soon as they become available',
-                    msg.customerAddress));
+    private handleQueueEvent(msg: HandoffEventMessage): Promise<{}> {
+        return this.provider.queueCustomerForAgent(msg.customerAddress);
     }
 
-    private handleDequeueEvent(msg: HandoffEventMessage): Promise<void> {
-        return this.provider.dequeueCustomerForAgent(msg.customerAddress)
-            // TODO abstract this response
-            .then(() => this.sendCustomerMessage('you\'re no longer in line for an agent', msg.customerAddress));
+    private handleDequeueEvent(msg: HandoffEventMessage): Promise<{}> {
+        return this.provider.dequeueCustomerForAgent(msg.customerAddress);
     }
 
-    private handleWatchEvent(msg: HandoffEventMessage): Promise<IConversation> {
+    private handleWatchEvent(msg: HandoffEventMessage): Promise<{}> {
         return this.provider.watchConversation(msg.customerAddress, msg.agentAddress);
     }
 
-    private handleUnwatchEvent(msg: HandoffEventMessage): Promise<IConversation> {
+    private handleUnwatchEvent(msg: HandoffEventMessage): Promise<{}> {
         return this.provider.unwatchConversation(msg.customerAddress, msg.agentAddress);
     }
 
-    private handleConnectEvent(msg: HandoffEventMessage): Promise<void> {
-        return this.provider.connectCustomerToAgent(msg.customerAddress, msg.agentAddress)
-            .then(() => this.sendCustomerMessage('you\'re now connected to an agent', msg.customerAddress));
+    private handleConnectEvent(msg: HandoffEventMessage): Promise<{}> {
+        return this.provider.connectCustomerToAgent(msg.customerAddress, msg.agentAddress);
     }
 
-    private handleDisconnectEvent(msg: HandoffEventMessage): Promise<void> {
-        return this.provider.disconnectCustomerFromAgent(msg.customerAddress, msg.agentAddress)
-            .then(() => this.sendCustomerMessage('you\'re no longer connected to the agent', msg.customerAddress));
-    }
-
-    private catchEventError(eventMessageErrorSource: HandoffEventMessage, error: {}): void {
-        this.bot.send(new ErrorEventMessage(eventMessageErrorSource, error));
-    }
-
-    private sendCustomerMessage(text: string, customerAddress: IAddress): void {
-        const message = new Message()
-            .address(customerAddress)
-            .text(text)
-            .toMessage() as HandoffEventMessage;
-
-        message.customerAddress = customerAddress;
-
-        this.bot.send(message);
-    }
-
-    private sendAgentMessage(text: string, agentAddress: IAddress): void {
-        const message = new Message()
-            .address(agentAddress)
-            .text(text)
-            .toMessage() as HandoffEventMessage;
-
-        message.agentAddress = agentAddress;
-
-        this.bot.send(message);
+    private handleDisconnectEvent(msg: HandoffEventMessage): Promise<{}> {
+        return this.provider.disconnectCustomerFromAgent(msg.customerAddress, msg.agentAddress);
     }
 }

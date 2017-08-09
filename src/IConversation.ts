@@ -20,6 +20,7 @@ export interface ITranscriptLine extends IMessage {
 export interface IConversation {
     customerAddress: IAddress;
     agentAddress?: IAddress;
+    watchingAgents: IAddress[];
     conversationState: ConversationState;
     transcript: ITranscriptLine[];
 }
@@ -28,6 +29,7 @@ export function createDefaultConversation(customerAddress: IAddress): IConversat
     return {
         customerAddress,
         conversationState: ConversationState.Bot,
+        watchingAgents: [],
         transcript: []
     };
 }

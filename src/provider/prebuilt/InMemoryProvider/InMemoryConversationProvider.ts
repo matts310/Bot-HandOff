@@ -3,6 +3,7 @@ import { clone } from 'lodash';
 import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
 import { ConversationStateUnchangedException } from '../../errors/ConversationStateUnchangedException';
 import { ConversationState, createDefaultConversation, IConversation } from './../../../IConversation';
+import { InMemoryConversationAgentManager } from './InMemoryConversationAgentManager';
 
 function getConversationIdFromAddresOrString(addressOrConvoId: string | IAddress): string {
     return typeof(addressOrConvoId) === 'string' ? addressOrConvoId : addressOrConvoId.conversation.id;
@@ -14,9 +15,11 @@ function isNewConversationStateTheSame(convo: IConversation, newState: Conversat
 
 export class InMemoryConversationProvider {
     private conversations: {[s: string]: IConversation};
+    private agentManager: InMemoryConversationAgentManager;
 
     constructor(conversations?: {[s: string]: IConversation}) {
         this.conversations = conversations || {};
+        this.agentManager = new InMemoryConversationAgentManager(this.conversations);
     }
 
     public getConversationFromCustomerAddress(customerAddressOrConvoId: string | IAddress): IConversation {
@@ -51,6 +54,8 @@ export class InMemoryConversationProvider {
     public setConversationStateToAgent(customerAddressOrConvoId: string | IAddress, agentAddress: IAddress): IConversation {
         const convo = this.getConversationFromCustomerAddress(customerAddressOrConvoId);
         const agentConvoId = agentAddress.conversation.id;
+
+        // this.agentManager.connectConversationToAgent(customerAddressOrConvoId, agentAddress);
 
         if ((convo.conversationState === ConversationState.Watch || convo.conversationState === ConversationState.WatchAndWait) &&
             (convo.agentAddress && convo.agentAddress.conversation.id !== agentConvoId)) {

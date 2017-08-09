@@ -27,7 +27,6 @@ const isAgent = (session: Session): Promise<boolean> => {
 
 describe('agent handoff', () => {
     let bot: UniversalBot;
-    let provider: IProvider;
 
     const customerIntroMessage = new Message()
         .text('hello')
@@ -35,13 +34,12 @@ describe('agent handoff', () => {
         .toMessage();
 
     beforeEach(() => {
-        provider = new InMemoryProvider();
         bot = new UniversalBot(connector);
         bot.dialog('/', (session: Session) => {
             session.send('intro!');
         });
 
-        applyHandoffMiddleware(bot, isAgent, provider);
+        applyHandoffMiddleware(bot, isAgent, new InMemoryProvider());
     });
 
     it('can handover to agents', () => {

@@ -4,7 +4,9 @@ import { ConsoleConnector, IAddress, IMessage, Message, Session, UniversalBot } 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import { setTimeout } from 'timers';
 import { QueueEventMessage } from '../src/eventMessages/QueueEventMessage';
+import { EventSuccessHandler, EventSuccessHandlers } from '../src/EventSuccessHandlers';
 import { InMemoryProvider } from '../src/provider/prebuilt/InMemoryProvider';
 import { applyHandoffMiddleware } from './../src/applyHandoffMiddleware';
 import { ConnectEventMessage } from './../src/eventMessages/ConnectEventMessage';
@@ -14,8 +16,9 @@ import { ErrorEventMessage } from './../src/eventMessages/ErrorEventMessage';
 import { HandoffEventMessage } from './../src/eventMessages/HandoffEventMessage';
 import { UnwatchEventMessage } from './../src/eventMessages/UnwatchEventMessage';
 import { WatchEventMessage } from './../src/eventMessages/WatchEventMessage';
+import { defaultSuccessHandlers } from './../src/EventSuccessHandlers';
 import { ConversationState, IConversation } from './../src/IConversation';
-import { IHandoffMessage } from './../src/IHandoffMessage';
+import { addCustomerAddressToMessage, IHandoffMessage } from './../src/IHandoffMessage';
 import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
 import { ConversationStateUnchangedException } from './../src/provider/errors/ConversationStateUnchangedException';
 import { IProvider } from './../src/provider/IProvider';
@@ -58,16 +61,41 @@ function createIProviderSpy(provider: IProvider): IProvider {
 }
 //tslint:enable
 
+function createSuccessHandlerSpies(): EventSuccessHandlers {
+    const defaultHandlers = defaultSuccessHandlers;
+
+    return {
+        connectSuccess: sinon.spy() as EventSuccessHandler,
+        disconnectSuccess: sinon.spy() as EventSuccessHandler,
+        queueSuccess: sinon.spy() as EventSuccessHandler,
+        dequeueSuccess: sinon.spy() as EventSuccessHandler,
+        watchSuccess: sinon.spy() as EventSuccessHandler,
+        unwatchSuccess: sinon.spy() as EventSuccessHandler
+    };
+}
+
 function expectConvoIsInWaitAndWatchState(convo: IConversation): void {
     expect(convo.agentAddress).to.deep.equal(AGENT_ADDRESS);
     expect(convo.customerAddress).to.deep.equal(CUSTOMER_ADDRESS);
     expect(convo.conversationState).to.be.equal(ConversationState.WatchAndWait);
 }
 
+function expectCallCount(count: number, ...spies: {}[]): void {
+    spies.forEach((spy: {}) => expect(spy).to.have.been.callCount(count));
+}
+
+function expectZeroCallsToSpies(...spies: {}[]): void {
+    expectCallCount(0, ...spies);
+}
+
 describe('event message', () => {
     let bot: UniversalBot;
     let provider: IProvider;
     let eventMessage: HandoffEventMessage;
+    let convo: IConversation;
+
+    // actually a spy, but allows us to group the related spies and pass them off as the existing functions
+    let successHandlerSpies: EventSuccessHandlers;
 
     // actually a spy, but this allows us to only focus on the relevant methods
     let providerSpy: IProvider;
@@ -80,13 +108,14 @@ describe('event message', () => {
     beforeEach(() => {
         provider = new InMemoryProvider();
         providerSpy = createIProviderSpy(provider);
+        successHandlerSpies = createSuccessHandlerSpies();
         bot = new UniversalBot(connector);
 
         bot.dialog('/', (session: Session) => {
             session.send('intro!');
         });
 
-        applyHandoffMiddleware(bot, isAgent, provider);
+        applyHandoffMiddleware(bot, isAgent, provider, successHandlerSpies);
 
         return new BotTester(bot, CUSTOMER_ADDRESS)
             .sendMessageToBot(customerIntroMessage)
@@ -105,6 +134,7 @@ describe('event message', () => {
 
     function sendMessageToBotAndGetConversationData(
         msg: HandoffEventMessage, expectedResponse?: string | IMessage):  Promise<IConversation> {
+
         return new BotTester(bot, CUSTOMER_ADDRESS)
             .sendMessageToBot(msg, expectedResponse)
             .runTest()
@@ -112,123 +142,132 @@ describe('event message', () => {
     }
 
     describe('connect/disconnect', () => {
-        it('connect sets converation state to Agent and bot responds with connection message to user', () => {
+        beforeEach(() => {
             eventMessage = new ConnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(eventMessage, 'you\'re now connected to an agent')
-                .then((convo: IConversation) => {
-                    expect(providerSpy.connectCustomerToAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
-                    expect(convo.conversationState).to.be.equal(ConversationState.Agent);
-                });
+            return sendMessageToBotAndGetConversationData(eventMessage)
+                .then((conversation: IConversation) => convo = conversation);
         });
 
-        it('disconnect sets converation state to Bot and bot responds with disconnect message to user', () => {
+        it('connect sets converation state to Agent and calls the connect success event handler', () => {
+            expect(convo.conversationState).to.be.equal(ConversationState.Agent);
+            expect(providerSpy.connectCustomerToAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+            expect(successHandlerSpies.connectSuccess).to.have.been.calledWith(bot, eventMessage);
+            expect(successHandlerSpies.connectSuccess).to.have.been.calledOnce;
+        });
+
+        it('disconnect sets converation state to Bot and calls the disconnect success event handler', () => {
             eventMessage = new DisconnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(new ConnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS))
-                .then(() => sendMessageToBotAndGetConversationData(eventMessage, 'you\'re no longer connected to the agent'))
+            return sendMessageToBotAndGetConversationData(eventMessage)
                 .then((conversation: IConversation) => {
-                    expect(providerSpy.disconnectCustomerFromAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
                     expect(conversation.conversationState).to.be.equal(ConversationState.Bot);
+                    expect(providerSpy.disconnectCustomerFromAgent).to.have.been.calledWith(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+                    expect(successHandlerSpies.disconnectSuccess).to.have.been.calledWith(bot, eventMessage);
+                    expect(successHandlerSpies.disconnectSuccess).to.have.been.calledOnce;
                 });
         });
 
-        it('sending connect event to an already connected conversation responds with an error event to the requesting agent', () => {
-            eventMessage = new ConnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+        //tslint:disable
+        it('sending connect event to an already connected conversation responds with an error event to the requesting agent and the success event handler is not called', () => {
+        //tslint:enable
             const errorEventMessage =
                 new ErrorEventMessage(eventMessage, new AgentAlreadyInConversationError(AGENT_ADDRESS.conversation.id));
 
             const errorMessage = new ErrorEventMessage(eventMessage, 'some error goes here');
 
-            const botTester = new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(eventMessage, errorEventMessage);
-
-            return sendMessageToBotAndGetConversationData(eventMessage, 'you\'re now connected to an agent')
-                .then(() => botTester.runTest());
+            return new BotTester(bot, CUSTOMER_ADDRESS)
+                .sendMessageToBot(eventMessage, errorEventMessage)
+                .runTest()
+                .then(() => expect(successHandlerSpies.connectSuccess).to.have.been.calledOnce);
         });
 
         //tslint:disable
         it('throws a CustomerAlreadyConnectedException to an agent that attempts to connect to a user that is already connect to another agent', () => {
-        // tstlint:enable
+        //tstlint:enable
             const connectionEvent1 = new ConnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
             const connectionEvent2 = new ConnectEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS_2);
 
             const expectedErrorMsg = new ErrorEventMessage(connectionEvent2, { name: "CustomerAlreadyConnectedException" });
 
             return new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(connectionEvent1, 'you\'re now connected to an agent')
                 .sendMessageToBot(connectionEvent2, expectedErrorMsg)
                 .runTest()
+                .then(() => expect(successHandlerSpies.connectSuccess).to.have.been.calledOnce);
         });
     });
 
     describe('watch/unwatch', () => {
-        it('watch sets the conversation state to watch when in bot state', () => {
+        beforeEach(() => {
             eventMessage = new WatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
             return sendMessageToBotAndGetConversationData(eventMessage)
-                .then((convo: IConversation) => {
-                    expect(convo.conversationState).to.be.equal(ConversationState.Watch);
-                    expect(convo.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
-                    expect(convo.agentAddress).to.deep.equal(AGENT_ADDRESS);
-                });
+                .then((conversation: IConversation) => convo = conversation);
+        });
+
+        it('watch sets the conversation state to watch when in bot state', () => {
+            expect(convo.conversationState).to.be.equal(ConversationState.Watch);
+            expect(convo.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
+            expect(convo.agentAddress).to.deep.equal(AGENT_ADDRESS);
+            expect(successHandlerSpies.watchSuccess).to.have.been.calledWith(bot, eventMessage);
+            expect(successHandlerSpies.watchSuccess).to.have.been.calledOnce;
         });
 
         it('unwatch sets the conversation state to bot when in a watch state', () => {
             eventMessage = new UnwatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(new WatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS))
-                .then(() => sendMessageToBotAndGetConversationData(eventMessage))
-                .then((convo: IConversation) => {
-                    expect(convo.conversationState).to.be.equal(ConversationState.Bot);
-                    expect(convo.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
-                    expect(convo.agentAddress).to.be.undefined;
+            return sendMessageToBotAndGetConversationData(eventMessage)
+                .then((conversationt: IConversation) => {
+                    expect(conversationt.conversationState).to.be.equal(ConversationState.Bot);
+                    expect(conversationt.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
+                    expect(conversationt.agentAddress).to.be.undefined;
+                    expect(successHandlerSpies.unwatchSuccess).to.have.been.calledWith(bot, eventMessage);
+                    expect(successHandlerSpies.unwatchSuccess).to.have.been.calledOnce;
                 });
         });
 
         it('watch sets the conversation to wait and watch when in wait state', () => {
-            eventMessage = new WatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS);
+            eventMessage = new QueueEventMessage(CUSTOMER_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(new QueueEventMessage(CUSTOMER_ADDRESS))
-                .then((convo: IConversation) => expect(convo.conversationState).to.be.equal(ConversationState.Wait))
-                .then(() => sendMessageToBotAndGetConversationData(eventMessage))
-                .then(expectConvoIsInWaitAndWatchState);
+            return sendMessageToBotAndGetConversationData(eventMessage)
+                .then(expectConvoIsInWaitAndWatchState)
+                .then(() => expect(successHandlerSpies.queueSuccess).to.have.been.calledOnce)
         });
     });
 
     describe('wait/unwait', () => {
-        it('wait sets the conversation state to wait when in bot state', () => {
+        beforeEach(() => {
             eventMessage = new QueueEventMessage(CUSTOMER_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(
-                eventMessage, 'you\'re all set to talk to an agent. One will be with you as soon as they become available')
-                .then((convo: IConversation) => {
-                    expect(convo.conversationState).to.be.equal(ConversationState.Wait);
-                    expect(convo.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
-                    expect(convo.agentAddress).to.be.undefined;
-                });
+            return sendMessageToBotAndGetConversationData(eventMessage)
+                .then((conversation: IConversation) => convo = conversation);
+        });
+
+        it('wait sets the conversation state to wait when in bot state', () => {
+            expect(convo.conversationState).to.be.equal(ConversationState.Wait);
+            expect(convo.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
+            expect(convo.agentAddress).to.be.undefined;
+            expect(successHandlerSpies.queueSuccess).to.have.been.calledOnce;
         });
 
         it('unwait sets the conversation state to bot when in a unwait state', () => {
             eventMessage = new DequeueEventMessage(CUSTOMER_ADDRESS);
 
-            return sendMessageToBotAndGetConversationData(
-                new QueueEventMessage(CUSTOMER_ADDRESS))
-                .then(() => sendMessageToBotAndGetConversationData(eventMessage, 'you\'re no longer in line for an agent'))
+            return sendMessageToBotAndGetConversationData(eventMessage)
                 .then((convo: IConversation) => {
                     expect(convo.conversationState).to.be.equal(ConversationState.Bot);
                     expect(convo.customerAddress).to.be.equal(CUSTOMER_ADDRESS);
                     expect(convo.agentAddress).to.be.undefined;
+                    expect(successHandlerSpies.dequeueSuccess).to.have.been.calledOnce;
                 });
         });
 
         it('wait sets the conversation to wait and watch when in watch state', () => {
-            eventMessage = new QueueEventMessage(CUSTOMER_ADDRESS);
+            eventMessage = new WatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS)
 
-            return sendMessageToBotAndGetConversationData(new WatchEventMessage(CUSTOMER_ADDRESS, AGENT_ADDRESS))
-                .then((convo: IConversation) => expect(convo.conversationState).to.be.equal(ConversationState.Watch))
-                .then(() => sendMessageToBotAndGetConversationData(eventMessage))
-                .then(expectConvoIsInWaitAndWatchState);
+            return sendMessageToBotAndGetConversationData(eventMessage)
+                .then(expectConvoIsInWaitAndWatchState)
+                .then(() => expect(successHandlerSpies.watchSuccess).to.have.been.calledOnce);
         });
     });
 
@@ -244,7 +283,11 @@ describe('event message', () => {
                     expect(convo.customerAddress).to.deep.equal(CUSTOMER_ADDRESS);
                 })
                 .then(() => sendMessageToBotAndGetConversationData(waitStateEvent))
-                .then(expectConvoIsInWaitAndWatchState);
+                .then(expectConvoIsInWaitAndWatchState)
+                .then(() => {
+                    expect(successHandlerSpies.watchSuccess).to.have.been.calledOnce;
+                    expect(successHandlerSpies.queueSuccess).to.have.been.calledOnce;
+                })
         });
 
         it('returns to wait with an unwatch event', () => {
@@ -254,6 +297,7 @@ describe('event message', () => {
                 .then((convo: IConversation) => {
                     expect(convo.conversationState).to.be.equal(ConversationState.Wait);
                     expect(convo.agentAddress).to.be.undefined;
+                    expect(successHandlerSpies.unwatchSuccess).to.have.been.calledOnce;
                 });
         });
 
@@ -264,6 +308,7 @@ describe('event message', () => {
                 .then((convo: IConversation) => {
                     expect(convo.conversationState).to.be.equal(ConversationState.Watch);
                     expect(convo.agentAddress).to.deep.equal(AGENT_ADDRESS);
+                    expect(successHandlerSpies.dequeueSuccess).to.have.been.calledOnce;
                 });
         });
     });
@@ -277,7 +322,7 @@ describe('event message', () => {
             expectedErrorEvent = new ErrorEventMessage(eventMessage, new ConversationStateUnchangedException('conversation was already in state wait'))
 
             return new BotTester(bot, CUSTOMER_ADDRESS)
-                .sendMessageToBot(eventMessage, 'you\'re all set to talk to an agent. One will be with you as soon as they become available')
+                .sendMessageToBot(eventMessage)
                 .sendMessageToBot(eventMessage, expectedErrorEvent)
                 .runTest();
         });
@@ -292,5 +337,5 @@ describe('event message', () => {
                 .sendMessageToBot(eventMessage, expectedErrorEvent)
                 .runTest();
         });
-    })
+    });
 });
