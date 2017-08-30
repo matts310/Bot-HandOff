@@ -1,9 +1,9 @@
-export class AgentConnectingIsNotSameAsWatching extends Error {
+export class ConnectingAgentIsNotWatching extends Error {
     constructor(msg: string) {
         super(msg);
 
         this.name = 'AgentConnectingIsNotSameAsWatching';
 
-        Object.setPrototypeOf(this, AgentConnectingIsNotSameAsWatching.prototype);
+        Object.setPrototypeOf(this, ConnectingAgentIsNotWatching.prototype);
     }
 }

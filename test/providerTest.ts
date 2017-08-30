@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { ConversationState, IConversation, ITranscriptLine } from './../src/IConversation';
 import { addAgentAddressToMessage, addCustomerAddressToMessage } from './../src/IHandoffMessage';
 import { AgentAlreadyInConversationError } from './../src/provider/errors/AgentAlreadyInConversationError';
-import { AgentConnectingIsNotSameAsWatching } from './../src/provider/errors/AgentConnectingIsNotSameAsWatching';
+import { ConnectingAgentIsNotWatching } from './../src/provider/errors/AgentConnectingIsNotSameAsWatching';
 import { AgentNotInConversationError } from './../src/provider/errors/AgentNotInConversationError';
 import {
     BotAttemptedToRecordMessageWhileAgentHasConnection
@@ -415,8 +415,8 @@ export function providerTest(getNewProvider: () => Promise<IProvider>, providerN
             it('throws error if different agent conversation than watching agent conversation attempts to connect to customer', () => {
                 return provider.connectCustomerToAgent(customer1Address, agent1Address2)
                     .then(() => expect.fail(null, null, 'Should have thrown error or wrong convo id to connect'))
-                    .catch(AgentConnectingIsNotSameAsWatching, (e: AgentConnectingIsNotSameAsWatching) => {
-                        expect(e).to.be.an.instanceOf(AgentConnectingIsNotSameAsWatching);
+                    .catch(ConnectingAgentIsNotWatching, (e: ConnectingAgentIsNotWatching) => {
+                        expect(e).to.be.an.instanceOf(ConnectingAgentIsNotWatching);
                     });
             });
 

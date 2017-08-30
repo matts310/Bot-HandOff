@@ -21,7 +21,7 @@ export function applyHandoffMiddleware(
 ): void {
     // in case a consumer sends in partial definition of the event success handlers (js side), fill the missing ones with defaults
     eventSuccessHandlers = Object.assign({}, defaultSuccessHandlers, eventSuccessHandlers );
-
+    isAgent = Promise.method(isAgent) as IsAgentFunction;
     // while not exactly botbuilder middleware, these listeners act in the same way
     applyHandoffEventListeners(bot, provider, eventSuccessHandlers);
 

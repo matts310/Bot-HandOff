@@ -40,7 +40,7 @@ function ensureCustomerAndAgentAddressDefined(customerAddress: builder.IAddress,
 }
 
 export class InMemoryProvider implements IProvider {
-    private conversations: InMemoryConversationStore;
+    public conversations: InMemoryConversationStore;
     private agentConvoToCustomerAddressProvider: AgentConvoIdToCustomerAddressProvider;
     private conversationProvider: InMemoryConversationProvider;
 
@@ -149,10 +149,12 @@ export class InMemoryProvider implements IProvider {
 
     // QUEUE/DEQUEUE ACTIONS
     public queueCustomerForAgent(customerAddress: builder.IAddress): Promise<IConversation> {
-        const customerConvoId: string = customerAddress.conversation.id;
+        // console.log(customerAddress, ';()(**(*(*(*(*(*(89');
+        // const customerConvoId: string = customerAddress.conversation.id;
 
         try {
-            return Promise.resolve(this.conversationProvider.setConversationStateToWait(customerConvoId));
+            // console.log(this.conversationProvider.setConversationStateToWait(customerConvoId), '9999afd9fdsa9dfsa9fdsa9fdsa9fdsa9fds');
+            return Promise.resolve(this.conversationProvider.setConversationStateToWait(customerAddress));
         } catch (e) {
             return Promise.reject(e);
         }

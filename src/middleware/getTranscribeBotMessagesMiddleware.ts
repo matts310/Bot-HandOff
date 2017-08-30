@@ -15,8 +15,9 @@ export function getTranscribeBotMessagesMiddleware(provider: IProvider): (s: IMe
             transcribePromise = provider.addBotMessageToTranscriptIgnoringConversationState(message);
         }
 
+        // console.log('sending', JSON.stringify(message, null, 2));
         //tslint:disable
-        return transcribePromise.then(() => next());
+        return transcribePromise.then(() => next())
         //tslint:enable
     };
 }

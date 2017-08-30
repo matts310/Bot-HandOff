@@ -27,7 +27,7 @@ export const defaultSuccessHandlers: EventSuccessHandlers = {
         sendTextToAddress(
             bot,
             'you\'re all set to talk to an agent. One will be with you as soon as they become available',
-            eventMessage.customerAddress);
+            eventMessage.address);
     },
     dequeueSuccess(bot: UniversalBot, eventMessage: HandoffEventMessage): void {
         sendTextToAddress(bot, 'you\'re no longer in line for an agent', eventMessage.customerAddress);

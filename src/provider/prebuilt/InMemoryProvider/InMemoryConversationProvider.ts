@@ -1,6 +1,6 @@
 import { IAddress, IMessage } from 'botbuilder';
 import { clone } from 'lodash';
-import { AgentConnectingIsNotSameAsWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
+import { ConnectingAgentIsNotWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
 import { ConversationStateUnchangedException } from '../../errors/ConversationStateUnchangedException';
 import { ConversationState, createDefaultConversation, IConversation } from './../../../IConversation';
 import { InMemoryConversationAgentManager } from './InMemoryConversationAgentManager';
@@ -24,6 +24,9 @@ export class InMemoryConversationProvider {
 
     public getConversationFromCustomerAddress(customerAddressOrConvoId: string | IAddress): IConversation {
         const customerConvoId = getConversationIdFromAddresOrString(customerAddressOrConvoId);
+
+        this.conversations[customerConvoId] =
+            this.conversations[customerConvoId] || this.createNewConversation(customerAddressOrConvoId as IAddress);
 
         return this.conversations[customerConvoId];
     }
@@ -60,7 +63,7 @@ export class InMemoryConversationProvider {
         if ((convo.conversationState === ConversationState.Watch || convo.conversationState === ConversationState.WatchAndWait) &&
             (convo.agentAddress && convo.agentAddress.conversation.id !== agentConvoId)) {
                 // tslint:disable
-                throw new AgentConnectingIsNotSameAsWatching(`agent ${convo.agentAddress.user.name} is attempting to connect to customer ${convo.customerAddress.user.name}, but was not the same agent that was watching`);
+                throw new ConnectingAgentIsNotWatching(`agent ${convo.agentAddress.user.name} is attempting to connect to customer ${convo.customerAddress.user.name}, but was not the same agent that was watching`);
                 //tslint:enable
         }
 

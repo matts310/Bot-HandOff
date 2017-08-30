@@ -73,7 +73,9 @@ class HandoffMessageEventListnerApplicator {
     }
 
     private handleQueueEvent(msg: HandoffEventMessage): Promise<{}> {
-        return this.provider.queueCustomerForAgent(msg.customerAddress);
+        console.log("HANDLING QUEUE EVENT");
+        return this.provider.queueCustomerForAgent(msg.customerAddress)
+            .then((a) => console.log(a) || a);
     }
 
     private handleDequeueEvent(msg: HandoffEventMessage): Promise<{}> {
