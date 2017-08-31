@@ -4,3 +4,4 @@ dist
 example/.vscode/launch.json
 *.map
 .nyc*
+coverage
