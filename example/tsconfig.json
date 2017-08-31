@@ -7,10 +7,6 @@
         "sourceMap": true
     },
     "files": [
-        "./src/applyHandoffMiddleware.ts",
-        "./test/AgentHandoff.spec.ts",
-        "./test/provider.spec.ts",
-        "./test/handoffMessageEvents.spec.ts",
-        "./test/providerTest.ts"
+        "app.ts"
     ]
 }

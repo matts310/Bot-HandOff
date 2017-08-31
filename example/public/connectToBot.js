@@ -38,4 +38,3 @@ logon_form.onsubmit = e => {
         bot: bot,
     }, document.getElementById("BotChatGoesHere"));
 }
-

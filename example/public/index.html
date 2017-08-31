@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Bot Chat</title>
+
+    <link href="http://unpkg.com/botframework-webchat/botchat.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="BotChatGoesHere"></div>
+    <form id="logon-form">
+        <label for="user-id">Enter login ID here</label>
+        <input id="user-id" type="text">
+        <button id="submit-btn" type="submit">Log In</button>
+    </form>
+
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+    <script src="http://unpkg.com/botframework-webchat/botchat.js"></script>
+    <script src="connectToBot.js"></script>
+</body>
+
+</html>
+<!DOCTYPE html>
+<!--
+  NOTE: This sample requires a bot which can send and receive specific event messages. Follow the instructions on
+  https://github.com/ryanvolum/backChannelBot to deploy such a bot.
+  This is a sample HTML file which shows how to embed an instance of WebChat which listens for event activities. For the sake
+  of demonstration it specifically listens for events of name "changeBackground". Using the backChannelBot sample
+  our page can listen for events of name "changeBackground" and send events of name "buttonClicked". This
+  highlights the ability for a bot to communicate with a page that embeds the bot through WebChat.
+  1. Build the project: "npm run build"
+  2. Start a web server: "npm run start"
+  3. Aim your browser at "http://localhost:8000/samples/backchannel?[parameters as listed below]"
+  For ease of testing, several parameters can be set in the query string:
+    * s = Direct Line secret, or
+    * t = Direct Line token (obtained by calling Direct Line's Generate Token)
+    * domain = optionally, the URL of an alternate Direct Line endpoint
+    * webSocket = set to 'true' to use WebSocket to receive messages (currently defaults to false)
+    * userid, username = id (and optionally name) of bot user
+    * botid, botname = id (and optionally name) of bot
+
