@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for src/provider/prebuilt/InMemoryProvider/InMemoryConversationProvider.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../../prettify.css" />
+    <link rel="stylesheet" href="../../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../../index.html">All files</a> / <a href="index.html">src/provider/prebuilt/InMemoryProvider</a> InMemoryConversationProvider.ts
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">98.31% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>58/59</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">89.29% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>25/28</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">100% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>15/15</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">98.31% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>58/59</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">274x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">274x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">274x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">274x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">56x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { IAddress, IMessage } from 'botbuilder';
+import { clone } from 'lodash';
+import { ConnectingAgentIsNotWatching } from '../../errors/AgentConnectingIsNotSameAsWatching';
+import { ConversationStateUnchangedException } from '../../errors/ConversationStateUnchangedException';
+import { ConversationState, createDefaultConversation, IConversation } from './../../../IConversation';
+import { InMemoryConversationAgentManager } from './InMemoryConversationAgentManager';
+&nbsp;
+function getConversationIdFromAddresOrString(addressOrConvoId: string | IAddress): string {
+    return typeof(addressOrConvoId) === 'string' ? addressOrConvoId : addressOrConvoId.conversation.id;
+}
+&nbsp;
+function isNewConversationStateTheSame(convo: IConversation, newState: ConversationState): boolean {
+    return convo.conversationState === newState;
+}
+&nbsp;
+export class InMemoryConversationProvider {
+    private conversations: {[s: string]: IConversation};
+    private agentManager: InMemoryConversationAgentManager;
+&nbsp;
+    constructor(conversations?: {[s: string]: IConversation}) {
+        this.conversations = conversations || <span class="branch-1 cbranch-no" title="branch not covered" >{};</span>
+        this.agentManager = new InMemoryConversationAgentManager(this.conversations);
+    }
+&nbsp;
+    public getConversationFromCustomerAddress(customerAddressOrConvoId: string | IAddress): IConversation {
+        const customerConvoId = getConversationIdFromAddresOrString(customerAddressOrConvoId);
+&nbsp;
+        this.conversations[customerConvoId] =
+            this.conversations[customerConvoId] || this.createNewConversation(customerAddressOrConvoId as IAddress);
+&nbsp;
+        return this.conversations[customerConvoId];
+    }
+&nbsp;
+    public addToTranscriptOrCreateNewConversation(customerAddress: IAddress, message: IMessage, from?: IAddress): IConversation {
+        const newLine = Object.assign({from, to: message.address}, clone(message));
+        let convo = this.getConversationFromCustomerAddress(customerAddress);
+&nbsp;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (!convo) {
+<span class="cstat-no" title="statement not covered" >            convo = this.createNewConversation(customerAddress);</span>
+        }
+&nbsp;
+        convo.transcript.push(newLine);
+&nbsp;
+        return convo;
+    }
+&nbsp;
+    public createNewConversation(customerAddress: IAddress): IConversation {
+        const newConvo = createDefaultConversation(customerAddress);
+&nbsp;
+        newConvo.customerAddress = customerAddress;
+&nbsp;
+        this.conversations[customerAddress.conversation.id] = newConvo;
+&nbsp;
+        return newConvo;
+    }
+&nbsp;
+    public setConversationStateToAgent(customerAddressOrConvoId: string | IAddress, agentAddress: IAddress): IConversation {
+        const convo = this.getConversationFromCustomerAddress(customerAddressOrConvoId);
+        const agentConvoId = agentAddress.conversation.id;
+&nbsp;
+        // this.agentManager.connectConversationToAgent(customerAddressOrConvoId, agentAddress);
+&nbsp;
+        if ((convo.conversationState === ConversationState.Watch || convo.conversationState === ConversationState.WatchAndWait) &amp;&amp;
+            (convo.agentAddress &amp;&amp; convo.agentAddress.conversation.id !== agentConvoId)) {
+                // tslint:disable
+                throw new ConnectingAgentIsNotWatching(`agent ${convo.agentAddress.user.name} is attempting to connect to customer ${convo.customerAddress.user.name}, but was not the same agent that was watching`);
+                //tslint:enable
+        }
+&nbsp;
+        return this.setConversationState(customerAddressOrConvoId, ConversationState.Agent, agentAddress);
+    }
+&nbsp;
+    public unsetConversationStateToAgent(customerAddressOrConvoId: string | IAddress): IConversation {
+        return this.setConversationStateToBot(customerAddressOrConvoId);
+    }
+&nbsp;
+    public setConversationStateToWait(customerAddress: string | IAddress): IConversation {
+        const convo = this.getConversationFromCustomerAddress(customerAddress);
+&nbsp;
+        if (convo.conversationState === ConversationState.Watch) {
+            return this.setConversationStateToWaitAndWatch(customerAddress);
+        }
+&nbsp;
+        return this.setConversationState(customerAddress, ConversationState.Wait);
+    }
+&nbsp;
+    public unsetConversationWait(customerConvo: string): IConversation {
+        const conversation = this.getConversationFromCustomerAddress(customerConvo);
+&nbsp;
+        if (conversation.conversationState === ConversationState.WatchAndWait) {
+            return this.setConversationStateToWatch(customerConvo, conversation.agentAddress);
+        }
+&nbsp;
+        return this.setConversationStateToBot(customerConvo);
+    }
+&nbsp;
+    public setConversationStateToWatch(customerAddress: string | IAddress, agentAddress?: IAddress): IConversation {
+        const convo = this.getConversationFromCustomerAddress(customerAddress);
+        agentAddress = agentAddress || <span class="branch-1 cbranch-no" title="branch not covered" >convo.agentAddress;</span>
+&nbsp;
+        if (convo.conversationState === ConversationState.Wait) {
+            return this.setConversationStateToWaitAndWatch(customerAddress, agentAddress);
+        }
+&nbsp;
+        return this.setConversationState(customerAddress, ConversationState.Watch, agentAddress);
+    }
+&nbsp;
+    public unsetConversationToWatch(customerAddress: string | IAddress): IConversation {
+        const convo = this.getConversationFromCustomerAddress(customerAddress);
+&nbsp;
+        if (convo.conversationState === ConversationState.WatchAndWait) {
+            return this.setConversationStateToWait(customerAddress);
+        }
+&nbsp;
+        return this.setConversationStateToBot(customerAddress);
+    }
+&nbsp;
+    private setConversationStateToWaitAndWatch(customerAddressOrConvoId: string | IAddress, agentAddress?: IAddress): IConversation {
+        if (!agentAddress) {
+            agentAddress = this.getConversationFromCustomerAddress(customerAddressOrConvoId).agentAddress;
+        }
+&nbsp;
+        return this.setConversationState(customerAddressOrConvoId, ConversationState.WatchAndWait, agentAddress);
+    }
+&nbsp;
+    private setConversationStateToBot(customerAddress: string | IAddress): IConversation {
+        const convo = this.getConversationFromCustomerAddress(customerAddress);
+&nbsp;
+        convo.conversationState = ConversationState.Bot;
+        delete convo.agentAddress;
+&nbsp;
+        return convo;
+    }
+&nbsp;
+    private setConversationState(customerConvo: string | IAddress, state: ConversationState, agentAddress?: IAddress): IConversation {
+        const convo = this.getConversationFromCustomerAddress(customerConvo);
+&nbsp;
+        if (isNewConversationStateTheSame(convo, state)) {
+            throw new ConversationStateUnchangedException(`conversation was already in state ${state}`);
+        }
+&nbsp;
+        convo.conversationState = state;
+        convo.agentAddress = agentAddress;
+&nbsp;
+        return convo;
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="https://istanbul.js.org/" target="_blank">istanbul</a> at Wed Aug 30 2017 18:58:33 GMT-0700 (PDT)
+</div>
+</div>
+<script src="../../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../../sorter.js"></script>
+</body>
+</html>

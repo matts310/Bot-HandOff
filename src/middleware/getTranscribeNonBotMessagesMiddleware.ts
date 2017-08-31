@@ -13,7 +13,7 @@ export function getTranscribeNonBotMessagesMiddleware(provider: IProvider): (s: 
         }
 
         // event messages are not part of a transcript
-        if (message.type !== 'message') {
+        if (message.type === 'message') {
             if (message.agentAddress) {
                 transcriptionPromise = provider.addAgentMessageToTranscript(message);
             } else {

@@ -1,20 +1,11 @@
 import { IAddress, Message, UniversalBot } from 'botbuilder';
-import { HandoffEventMessage } from './eventMessages/HandoffEventMessage';
+import { HandoffEventMessage } from '../eventMessages/HandoffEventMessage';
 
 //tslint:disable
 export type EventSuccessHandler = (bot: UniversalBot, eventMessage: HandoffEventMessage) => any;
 //tslint:enable
 
-export interface EventSuccessHandlers {
-    connectSuccess: EventSuccessHandler;
-    disconnectSuccess: EventSuccessHandler;
-    queueSuccess: EventSuccessHandler;
-    dequeueSuccess: EventSuccessHandler;
-    watchSuccess: EventSuccessHandler;
-    unwatchSuccess: EventSuccessHandler;
-}
-
-export const defaultSuccessHandlers: EventSuccessHandlers = {
+export const defaultSuccessHandlers = {
     connectSuccess(bot: UniversalBot, eventMessage: HandoffEventMessage): void {
         sendTextToAddress(bot, 'you\'re now connected to an agent', eventMessage.customerAddress);
         // add agent message
