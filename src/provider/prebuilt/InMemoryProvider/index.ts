@@ -11,8 +11,6 @@ import { IProvider } from '../../IProvider';
 import { AgentConvoIdToCustomerAddressProvider } from './AgentConvoIdToCustomerAddressProvider';
 import { InMemoryConversationProvider } from './InMemoryConversationProvider';
 
-type InMemoryConversationStore = {[s: string]: IConversation};
-
 type AgentToCustomerConversationMap = {
     [s: string]: builder.IAddress
 };
@@ -40,7 +38,7 @@ function ensureCustomerAndAgentAddressDefined(customerAddress: builder.IAddress,
 }
 
 export class InMemoryProvider implements IProvider {
-    public conversations: InMemoryConversationStore;
+    public conversations: {[s: string]: IConversation};
     private agentConvoToCustomerAddressProvider: AgentConvoIdToCustomerAddressProvider;
     private conversationProvider: InMemoryConversationProvider;
 
