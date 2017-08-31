@@ -1,9 +1,10 @@
 {
-  "name": "botbuilder-handoff",
-  "version": "0.1.9",
+  "name": "bot-handoff",
+  "version": "0.0.1",
   "license": "MIT",
   "description": "Bot hand off module for the Microsoft Bot Framework. It allows you to transfer a customer from talking to a bot to talking to a human.",
-  "main": "dist/index.js",
+  "main": "dist/src/applyHandoffMiddleware.js",
+  "types": "dist/src/applyHandoffMiddleware.d.ts",
   "homepage": "https://github.com/palindromed/Bot-HandOff/tree/npm-handoff",
   "scripts": {
     "prepublishOnly": "npm run testPublish",
