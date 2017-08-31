@@ -5,3 +5,4 @@ example/.vscode/launch.json
 *.map
 .nyc*
 coverage
+yarn-error.log
